@@ -1,54 +1,130 @@
-# sv
+# Hearth
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+Hearth is a small, self-hosted household finance dashboard for two people on a home LAN. You import
+bank statements by hand, Hearth stores every row in MySQL without ever double counting, categorises
+the movements, and shows where the money comes from and where it goes: income vs expenses, category
+breakdowns and trends, who contributes what, top merchants and recurring payments.
 
-## Creating a project
+There is no login: run it only on a trusted network. All amounts are stored as integer cents.
+Built with SvelteKit 3 (Svelte 5), Drizzle ORM, MySQL 8.4 and Apache ECharts.
 
-If you're seeing this, you've probably already done this step. Congrats!
+## Quick start (development)
 
-```sh
-# create a new project
-npx sv create my-app
-```
-
-To recreate this project with the same configuration:
-
-```sh
-# recreate this project
-npx sv@1.1.1 create --template minimal --types ts --add prettier eslint vitest="usages:unit,component" playwright="demo:no" tailwindcss="plugins:typography,forms" sveltekit-adapter="adapter:node" --no-install .
-```
-
-## Adding features
-
-Add features to your project with `sv add`:
+Needs Node 24 (`.nvmrc`) and podman or docker.
 
 ```sh
-npx sv add
-```
-
-For example, to add Tailwind CSS:
-
-```sh
-npx sv add tailwindcss
-```
-
-## Developing
-
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
-
-```sh
+cp .env.example .env              # DATABASE_URL already points at the compose database
+podman compose up -d db           # or: docker compose up -d db
+npm install
 npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
 ```
 
-## Building
+Open the printed URL. On start the server waits for MySQL, applies the migrations in `/drizzle`
+and seeds the default categories, rules and people, so there is nothing to set up by hand.
 
-To create a production version of your app:
+## Importing a statement
+
+1. Open **Admin > Imports** (`/admin`).
+2. Upload the bank file (currently the Deutsche Bank "Movimientos" `.xls`). The importer is
+   auto-detected from the file.
+3. The result shows how many rows were inserted, updated or unchanged. Uploading the same or an
+   overlapping file again is safe.
+4. Open **Review** to give a category to what the rules could not classify; optionally create a rule
+   from the same screen so the next import categorises it automatically.
+
+Bank files are never committed (`*.xls`, `*.xlsx` and `/samples` are git-ignored). Tests use
+synthetic data with fake IBANs and merchants.
+
+## Adding a new importer
+
+Importers are plugins; the interface is in `src/lib/server/importers/types.ts`.
+
+1. Create `src/lib/server/importers/<bank>.ts` exporting an `Importer`:
+   - `id`, `label`, `accepts` (lowercase extensions such as `['.csv']`);
+   - `detect(buf, filename)`: return `true` only for files in your format;
+   - `parse(buf)`: return `{ account: { iban, currency }, rows }` where each row has ISO
+     `bookingDate`/`valueDate`, `concept`, signed integer `amountCents` (negative = money out),
+     `balanceCents` (or `null`) and the untouched source row in `raw`.
+2. Register it with one line in `src/lib/server/importers/registry.ts` (add it to the `importers` array).
+3. Add a spec next to it using a synthetic fixture (see `test-fixtures.ts` and
+   `deutsche-bank-xls.spec.ts`). Never use real bank data.
+
+Deduplication, categorisation and storage are shared, so a new importer needs nothing else.
+
+## Categories and rules
+
+Each movement belongs to one category (groceries, utilities, salary contributions and so on; some are
+flagged as transfer/ignore and are excluded from totals unless the dashboard "include transfers"
+option is on). Rules (**Admin > Rules**) assign a category by matching the concept text with
+`contains` or `regex`, with a priority, a direction (in/out) and an active flag. Rules run on newly
+imported rows that have no category yet. A category you set by hand is never overwritten by rules or
+re-imports. Salary transfers can be attributed to a person, which feeds the contributions chart.
+
+## Dedup guarantee
+
+Every row gets `dedup_hash = sha256(account | booking date | value date | concept | amount | balance after)`
+and is upserted on it. Re-importing a file, or an overlapping export, does not create duplicate rows
+and does not touch manual categories. Two genuinely identical movements on the same day stay distinct
+because the balance after each differs. The original source row is kept verbatim in `raw_json`.
+
+## Configuration
+
+| Variable                  | Where               | Default / example                             | Purpose                                                         |
+| ------------------------- | ------------------- | --------------------------------------------- | --------------------------------------------------------------- |
+| `DATABASE_URL`            | app                 | `mysql://hearth:hearth@127.0.0.1:3306/hearth` | MySQL connection (required)                                     |
+| `BODY_SIZE_LIMIT`         | app                 | `25M` in the image                            | Max upload size (adapter-node default is only 512K)             |
+| `PORT` / `HOST`           | app                 | `3000` / `0.0.0.0`                            | Listen address inside the container                             |
+| `ORIGIN`                  | app                 | unset                                         | Set the public origin when behind a reverse proxy               |
+| `MIGRATIONS_DIR`          | app                 | `./drizzle` from the working directory        | Override the migrations folder                                  |
+| `TEST_DATABASE_ADMIN_URL` | tests               | `mysql://root:root@127.0.0.1:3306`            | Root URL for throwaway `hearth_test_*` / `hearth_e2e` databases |
+| `HEARTH_IMAGE`            | `compose.prod.yaml` | `ghcr.io/OWNER/REPO:latest`                   | Image to deploy                                                 |
+| `MYSQL_ROOT_PASSWORD`     | `compose.prod.yaml` | required                                      | MySQL root password                                             |
+| `MYSQL_PASSWORD`          | `compose.prod.yaml` | required                                      | Password of the `hearth` DB user (use URL-safe characters)      |
+| `HEARTH_PORT`             | `compose.prod.yaml` | `3000`                                        | Host port published on the LAN                                  |
+
+## Release and deploy
+
+`.github/workflows/docker.yml` is the entry pipeline. On every pull request and push it runs the
+tests (`ci.yml`: lint, svelte-check, migration drift check, unit and integration tests, build and
+Playwright e2e against a MySQL service container), then builds the image and smoke-tests it against
+a real MySQL (waits for `/` to return 200 and checks that the tables exist). Only pushes to `main` and
+`v*` tags, after everything passed, publish the image to GHCR (`ghcr.io/<owner>/<repo>`, tags: branch,
+`latest`, semver, sha). Pull requests never push.
+
+To deploy on the home server:
 
 ```sh
-npm run build
+cp .env.example .env     # set HEARTH_IMAGE, MYSQL_ROOT_PASSWORD, MYSQL_PASSWORD (long random values)
+podman compose -f compose.prod.yaml up -d      # or: docker compose -f compose.prod.yaml up -d
 ```
 
-You can preview the production build with `npm run preview`.
+The stack runs the app (non-root, with a health check) and MySQL 8.4 with a named volume, restarts
+unless stopped, and publishes only the app port; the database is reachable only inside the compose
+network. Tables are created and seeded by the app on first start. If the GHCR package is private,
+log in first (`podman login ghcr.io`). To upgrade, pull the new tag and run `up -d` again; new
+migrations apply automatically.
+
+## Testing
+
+```sh
+npm run lint                       # prettier + eslint
+npm run check                      # svelte-check
+npm run test:unit -- --run         # vitest: server project (+ browser component project)
+npx playwright install chromium   # once
+npx playwright test                # e2e on a throwaway hearth_e2e database
+```
+
+DB integration tests and e2e need MySQL (`podman compose up -d db`); integration tests skip when it is
+unreachable. After editing `src/lib/server/db/schema.ts` run `npm run db:generate` and commit the new
+migration; CI fails if schema and `/drizzle` drift apart.
+
+## Backup
+
+All data lives in the `hearth-db` volume (named `<project>_hearth-db`). Take a logical dump regularly:
+
+```sh
+podman compose -f compose.prod.yaml exec db sh -c 'mysqldump -uroot -p"$MYSQL_ROOT_PASSWORD" --single-transaction hearth' > hearth-$(date +%F).sql
+```
+
+Restore into an empty database with `mysql -uroot -p hearth < hearth-YYYY-MM-DD.sql`. Keep dumps off
+the server; they contain your financial data.

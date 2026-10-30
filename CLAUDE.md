@@ -1,7 +1,7 @@
 # CLAUDE.md — Hearth (family finance app)
 
 SvelteKit 3 + Svelte 5 (runes) + TypeScript + Tailwind CSS 4. Node adapter, shipped as a container.
-Product scope is still being defined; keep the skeleton small until requirements arrive.
+See README.md for the product overview, importers, configuration and deploy.
 
 ## Commands
 
@@ -11,7 +11,7 @@ Product scope is still being defined; keep the skeleton small until requirements
 - `npm run test:unit -- --run` — vitest (server + browser component projects)
 - `npm run test:e2e` — playwright (builds and previews the app)
 - `npm run build` — production build to `build/` (`node build`)
-- `docker build -t hearth .` — container image
+- `podman build -t hearth .` (or docker) — container image; `podman compose -f compose.prod.yaml up -d` — prod-style stack
 
 ## Conventions
 
@@ -40,10 +40,13 @@ Installed in `.claude/skills/`. `DESIGN.md` is the source of truth: skills must 
 
 The design lives in two places only: `DESIGN.md` (rules) and the `@theme` block in `src/routes/layout.css` (tokens). To restyle, edit both, keep token names, and components follow. Never hardcode colours in components.
 
-## CI/CD
+## CI/CD and release
 
-- `.github/workflows/ci.yml`: lint, check, unit tests, build, e2e on every PR/push.
-- `.github/workflows/docker.yml`: on `main` and `v*` tags, builds and pushes image to GHCR.
+- `.github/workflows/docker.yml` is the entry pipeline (push to `main`, `v*` tags, pull requests): job `test` calls `ci.yml` (reusable, also manually runnable), then job `image` builds the image, smoke-tests it against a MySQL container (waits for `/` = 200, tables exist, container healthy) and only on push to `main`/`v*` logs in and pushes to GHCR (`ghcr.io/<owner>/<repo>`, tags branch/latest/semver/sha). PRs never push.
+- `.github/workflows/ci.yml`: MySQL 8.4 service container; `DATABASE_URL` and `TEST_DATABASE_ADMIN_URL` are exported so DB integration tests and e2e really run. Steps: lint, check, migration drift check (`drizzle-kit generate` must leave `/drizzle` unchanged), unit tests (server + browser projects; the client project has no tests yet, `passWithNoTests` is on), build, Playwright e2e.
+- Workflows cannot be run locally; the image build and the prod stack were verified with podman instead.
+- Image: multi-stage `Dockerfile`, runs as `node`, `HEALTHCHECK` via node fetch, build passes a placeholder `DATABASE_URL` because Kit 3 validates env at build time (not baked into the output). `compose.prod.yaml` = app (`HEARTH_IMAGE`) + MySQL 8.4 with named volume, healthchecks, only the app port published; config in `.env` (see `.env.example`). Tables are created by the app's `init` hook on first start; no manual migration step.
+- Deploy: set `HEARTH_IMAGE`, `MYSQL_ROOT_PASSWORD`, `MYSQL_PASSWORD` in `.env`, then `podman compose -f compose.prod.yaml up -d` (or docker). After editing `schema.ts` always run `npm run db:generate` and commit, or CI fails.
 
 ## Backend
 

@@ -1,17 +1,37 @@
 name: CI
 
+# Reusable test pipeline. It is called by docker.yml (the entry workflow for
+# push, tag and pull_request events) so the tests gate the image publish, and can
+# also be started by hand from the Actions tab.
 on:
-  push:
-    branches: [main]
-  pull_request:
+  workflow_call:
+  workflow_dispatch:
 
-concurrency:
-  group: ci-${{ github.ref }}
-  cancel-in-progress: true
+permissions:
+  contents: read
 
 jobs:
   test:
     runs-on: ubuntu-latest
+    timeout-minutes: 25
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: hearth
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd "mysqladmin ping -h 127.0.0.1 -uroot -proot"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    env:
+      # DB integration tests create throwaway hearth_test_* databases with the root URL;
+      # Playwright uses hearth_e2e. With MySQL reachable none of them skip.
+      DATABASE_URL: mysql://root:root@127.0.0.1:3306/hearth
+      TEST_DATABASE_ADMIN_URL: mysql://root:root@127.0.0.1:3306
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -19,9 +39,40 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
-      - run: npx playwright install --with-deps chromium
+      - name: Cache Playwright browsers
+        id: playwright-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+      - name: Install Chromium (with system deps)
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: npx playwright install --with-deps chromium
+      - name: Install system deps only (browser restored from cache)
+        if: steps.playwright-cache.outputs.cache-hit == 'true'
+        run: npx playwright install-deps chromium
       - run: npm run lint
       - run: npm run check
-      - run: npm run test:unit -- --run
+      - name: Migration drift check (schema.ts must match /drizzle)
+        run: |
+          npx drizzle-kit generate
+          if [ -n "$(git status --porcelain -- drizzle)" ]; then
+            echo "::error::schema.ts and /drizzle are out of sync. Run 'npm run db:generate' and commit the result."
+            git status --porcelain -- drizzle
+            exit 1
+          fi
+      - name: Unit and integration tests (server + browser component projects)
+        run: npm run test:unit -- --run
       - run: npm run build
-      - run: npx playwright test
+      - name: End-to-end tests
+        run: npx playwright test
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            playwright-report
+            test-results
+          if-no-files-found: ignore
+          retention-days: 7

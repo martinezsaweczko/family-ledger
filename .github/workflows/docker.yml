@@ -1,38 +1,105 @@
-name: Container
+name: CI/CD
 
+# Entry workflow. Pull requests: tests, then image build + smoke test (nothing is pushed).
+# Pushes to main and v* tags: the same, then the image is published to GHCR.
 on:
   push:
     branches: [main]
     tags: ['v*']
+  pull_request:
+
+concurrency:
+  group: pipeline-${{ github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: read
-  packages: write
 
 jobs:
+  test:
+    uses: ./.github/workflows/ci.yml
+
   image:
+    needs: test
     runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      packages: write
+    env:
+      IMAGE: ghcr.io/${{ github.repository }}
     steps:
       - uses: actions/checkout@v4
       - uses: docker/setup-buildx-action@v3
-      - uses: docker/login-action@v3
+      - id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.IMAGE }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=sha
+            type=raw,value=latest,enable={{is_default_branch}}
+      - name: Build image (loaded locally, not pushed)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          load: true
+          tags: hearth:smoke
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: Smoke test the image against a real MySQL
+        run: |
+          set -eu
+          docker network create smoke
+          docker run -d --name smoke-db --network smoke \
+            -e MYSQL_ROOT_PASSWORD=smoke -e MYSQL_DATABASE=hearth -e MYSQL_USER=hearth -e MYSQL_PASSWORD=smoke \
+            mysql:8.4
+          for i in $(seq 1 60); do
+            docker exec smoke-db mysqladmin ping -h 127.0.0.1 -uroot -psmoke --silent && break
+            sleep 2
+          done
+          docker run -d --name smoke-app --network smoke -p 3000:3000 \
+            -e DATABASE_URL=mysql://hearth:smoke@smoke-db:3306/hearth hearth:smoke
+          code=000
+          for i in $(seq 1 60); do
+            code=$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:3000/ || true)
+            [ "$code" = 200 ] && break
+            sleep 2
+          done
+          echo "GET / -> $code"
+          if [ "$code" != 200 ]; then docker logs smoke-app; exit 1; fi
+          tables=$(docker exec smoke-db mysql -uhearth -psmoke -N -B hearth -e 'SHOW TABLES' | wc -l)
+          echo "tables created by auto-migrate: $tables"
+          [ "$tables" -ge 6 ]
+          for i in $(seq 1 20); do
+            health=$(docker inspect -f '{{.State.Health.Status}}' smoke-app)
+            [ "$health" = healthy ] && break
+            sleep 3
+          done
+          echo "container health: $health"
+          [ "$health" = healthy ]
+      - name: Dump logs on failure
+        if: failure()
+        run: |
+          docker logs smoke-app || true
+          docker logs smoke-db || true
+      - name: Log in to GHCR
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ghcr.io/${{ github.repository }}
-          tags: |
-            type=ref,event=branch
-            type=semver,pattern={{version}}
-            type=sha
-      - uses: docker/build-push-action@v6
+      - name: Push image
+        if: github.event_name != 'pull_request'
+        uses: docker/build-push-action@v6
         with:
           context: .
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
-          cache-to: type=gha,mode=max
