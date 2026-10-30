@@ -39,7 +39,7 @@ store raw rows in MySQL without double counting, categorise, and analyse income/
   then GREEN for parser/dedup unit tests (synthetic fixture, fake IBAN) and import-service integration tests (same file twice => 0 inserted,
   overlap => only new rows, identical same-day rows distinct, manual categories preserved).
 
-- T3 Categorizer (delegated writer; commit recorded in git log as `feat(categorizer)`): RED observed (missing modules), GREEN for pure
+- T3 Categorizer (delegated writer; commit d77d3dc): RED observed (missing modules), GREEN for pure
   rule-engine tests (contains/regex/priority/direction/inactive, seed-rule sanity) and DB integration (rules applied on import to new
   uncategorised rows only; manual category survives recategorizeAll and re-import). ANUL.EFECTIVO (inbound) maps to cash-withdrawals as a
   reversal. Real-sample smoke (counts only): 164 rows parsed, 163 inserted (1 exact duplicate line inside the file collapsed), second
