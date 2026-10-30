@@ -14,6 +14,7 @@ export interface TransactionRow {
 	balanceCents: number | null;
 	categoryId: number | null;
 	categoryName: string | null;
+	categorySlug: string | null;
 	categoryColor: string | null;
 	personName: string | null;
 }
@@ -60,6 +61,7 @@ export async function transactions(
 			balanceCents: statements.balanceCents,
 			categoryId: statements.categoryId,
 			categoryName: categories.name,
+			categorySlug: categories.slug,
 			categoryColor: categories.color,
 			personName: people.name
 		})

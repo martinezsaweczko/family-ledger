@@ -11,6 +11,7 @@ export default defineConfig({
 		timeout: 180_000,
 		env: { DATABASE_URL: `${ADMIN_URL}/hearth_e2e` }
 	},
+	workers: 1,
 	globalTeardown: './e2e/global-teardown.mjs',
 	testMatch: '**/*.e2e.{ts,js}'
 });

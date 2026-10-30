@@ -54,6 +54,9 @@ The design lives in two places only: `DESIGN.md` (rules) and the `@theme` block 
 - Analytics: `src/lib/server/analytics/*.ts` (SQL aggregation, one shared filter). Outputs are cents; expenses are reported as POSITIVE spend; `transfer`/`ignore` categories are excluded unless `includeTransfers`. Merchant names come from `importers/merchant.ts` (`cleanMerchant`), shared by rule suggestions, top merchants and recurring detection.
 - e2e: `npx playwright test` builds and previews against a throwaway `hearth_e2e` MySQL database (created/dropped by `e2e/db.mjs`, admin URL `TEST_DATABASE_ADMIN_URL`); it never touches the dev `hearth` DB.
 - Bank files are never committed or put in tests/fixtures; build synthetic ones (see `importers/test-fixtures.ts`).
+- Dashboard (`/dashboard`, `/dashboard/category/[slug]`, `/dashboard/transactions`): filter state lives in the URL (`range` preset | `from`/`to`, `g`, `cat`, `transfers`, plus `q`/`sort`/`page` on tables); parsing, presets and insight sentences are pure code in `src/lib/dashboard/` (unit tested). Ranges are anchored at the latest statement date, not today. Loaders live in each `+page.server.ts` and share `dashboard/context.server.ts`; they call the analytics functions in parallel and return a `failed` message instead of throwing.
+- Charts: Apache ECharts via `components/Chart.svelte` (client-only init, SVG renderer, ResizeObserver, reduced-motion aware, sr-only data table). Colours come from CSS tokens (`@theme static` in layout.css, read by `dashboard/chart-theme.ts`); option builders are in `dashboard/charts.ts`. Register new ECharts modules in `dashboard/echarts.ts`.
+- e2e: `e2e/synthetic.ts` seeds a fake household (fake IBAN and merchants) into `hearth_e2e`; Playwright runs with one worker because specs share that database. `node e2e/seed-cli.ts <db-url> [--empty]` seeds any throwaway DB for screenshots.
 
 ## Gotchas
 

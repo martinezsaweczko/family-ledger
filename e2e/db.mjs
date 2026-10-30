@@ -6,6 +6,7 @@ export const E2E_DB = 'hearth_e2e';
 export const ADMIN_URL = process.env.TEST_DATABASE_ADMIN_URL ?? 'mysql://root:root@127.0.0.1:3306';
 export const E2E_DATABASE_URL = `${ADMIN_URL}/${E2E_DB}`;
 
+/** @param {string} sql */
 async function run(sql) {
 	const pool = createPool({ uri: ADMIN_URL, connectionLimit: 1 });
 	try {
