@@ -1,0 +1,19 @@
+# Local dev database. Works with `podman compose up -d db` (or docker compose).
+services:
+  db:
+    image: docker.io/library/mysql:8.4
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: hearth
+      MYSQL_USER: hearth
+      MYSQL_PASSWORD: hearth
+    ports:
+      - '3306:3306'
+    volumes:
+      - hearth-db:/var/lib/mysql
+    healthcheck:
+      test: ['CMD', 'mysqladmin', 'ping', '-h', 'localhost', '-uroot', '-proot']
+      interval: 5s
+      retries: 20
+volumes:
+  hearth-db:

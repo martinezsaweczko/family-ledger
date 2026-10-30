@@ -1,0 +1,51 @@
+@import 'tailwindcss';
+@plugin '@tailwindcss/forms';
+@plugin '@tailwindcss/typography';
+
+@import '@fontsource-variable/inter';
+
+/* Design tokens: "Clear Slate", see DESIGN.md */
+@theme {
+	--font-display: 'Inter Variable', system-ui, sans-serif;
+	--font-sans: 'Inter Variable', system-ui, sans-serif;
+
+	--color-paper: #f6f8fa;
+	--color-card: #ffffff;
+	--color-line: #dde3ea;
+	--color-ink: #0f1b2a;
+	--color-ink-soft: #566577;
+
+	--color-primary-50: #e6f6f4;
+	--color-primary-100: #c2ebe6;
+	--color-primary-500: #0f9488;
+	--color-primary-600: #0b7a70;
+	--color-primary-700: #0a6159;
+	--color-primary-900: #063a35;
+
+	--color-attention-100: #fdeccd;
+	--color-attention-500: #e08a00;
+	--color-attention-600: #b86e00;
+
+	--color-highlight-100: #e4e7fb;
+	--color-highlight-500: #4f5bd5;
+
+	--radius-card: 0.75rem;
+	--shadow-card: 0 1px 2px rgb(15 27 42 / 0.06);
+}
+
+@layer base {
+	html {
+		background: var(--color-paper);
+		color: var(--color-ink);
+		font-family: var(--font-sans);
+		-webkit-font-smoothing: antialiased;
+	}
+	h1,
+	h2,
+	h3 {
+		letter-spacing: -0.02em;
+	}
+	.num {
+		font-variant-numeric: tabular-nums;
+	}
+}
