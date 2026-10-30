@@ -50,6 +50,9 @@ The design lives in two places only: `DESIGN.md` (rules) and the `@theme` block 
 - DB: Drizzle + mysql2 (`src/lib/server/db`). `npm run db:generate` after editing `schema.ts`; migrations in `/drizzle` are applied (then seeded) automatically by the `init` hook in `src/hooks.server.ts`. Env: `DATABASE_URL` (declared in `src/env.ts`, Kit 3 has no `$env/dynamic/private`).
 - Importers are plugins: one file in `src/lib/server/importers/` + one line in `registry.ts`. `importFile` dedups by `dedup_hash`; manual categories are never overwritten.
 - Local DB: `podman compose up -d db`. DB integration tests use throwaway `hearth_test_*` databases (admin URL `TEST_DATABASE_ADMIN_URL`, default root@127.0.0.1) and skip when MySQL is unreachable.
+- Admin (`/admin`, no auth, LAN only): Imports, Review, Categories, Rules. Server logic is thin and testable in `src/lib/server/admin/*.ts`; routes only parse forms and call it. Uploads need `BODY_SIZE_LIMIT` (Dockerfile sets 25M; adapter-node defaults to 512K).
+- Analytics: `src/lib/server/analytics/*.ts` (SQL aggregation, one shared filter). Outputs are cents; expenses are reported as POSITIVE spend; `transfer`/`ignore` categories are excluded unless `includeTransfers`. Merchant names come from `importers/merchant.ts` (`cleanMerchant`), shared by rule suggestions, top merchants and recurring detection.
+- e2e: `npx playwright test` builds and previews against a throwaway `hearth_e2e` MySQL database (created/dropped by `e2e/db.mjs`, admin URL `TEST_DATABASE_ADMIN_URL`); it never touches the dev `hearth` DB.
 - Bank files are never committed or put in tests/fixtures; build synthetic ones (see `importers/test-fixtures.ts`).
 
 ## Gotchas

@@ -7,7 +7,7 @@ RUN npm run build && npm prune --omit=dev
 
 FROM node:24-alpine
 WORKDIR /app
-ENV NODE_ENV=production PORT=3000
+ENV NODE_ENV=production PORT=3000 BODY_SIZE_LIMIT=25M
 COPY --from=build /app/build ./build
 COPY --from=build /app/drizzle ./drizzle
 COPY --from=build /app/node_modules ./node_modules
