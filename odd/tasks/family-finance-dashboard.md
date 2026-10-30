@@ -15,6 +15,7 @@ store raw rows in MySQL without double counting, categorise, and analyse income/
 - Bank files are never committed (`/samples`, `*.xls*` gitignored). Tests use synthetic fixtures.
 - Sample format (DB Spain "Movimientos"): header rows 1-6, table header row 8 (`date,value_date,concept,...,amount,balance`),
   dates dd/mm/yyyy strings, amounts numbers; incomes are `TRF.EX ... DE <NAME>`.
+- Single joint account audited; contributions = salary transfers from David and Joanna (person attribution on income rows).
 - Delivery: ask-on-risk; push/PR/merge are the user's decisions. Engram mirror unavailable in this runtime: PENDING.
 
 ## Tasks
@@ -22,8 +23,8 @@ store raw rows in MySQL without double counting, categorise, and analyse income/
 - [x] T1 DB layer: drizzle schema (accounts, import_batches, statements, categories, category_rules, people), migrations, auto-migrate on startup, seed
 - [x] T2 Importer framework + Deutsche Bank importer + dedup upsert + tests (synthetic fixture)
 - [x] T3 Categorizer (rules engine, seed categories/rules, person attribution for salary transfers) + tests
-- [ ] T4 Admin: upload/import history, categories & rules CRUD, uncategorised review/manual override
-- [ ] T5 Analytics queries (period/granularity/category/person filters) + tests
+- [x] T4 Admin: upload/import history, categories & rules CRUD, uncategorised review/manual override
+- [x] T5 Analytics queries (period/granularity/category/person filters) + tests
 - [ ] T6 Dashboard UI (ECharts): KPIs, income vs expenses, categories, trends, contributions, drill-down, recurring
 - [ ] T7 Attractive landing page
 - [ ] T8 CI (MySQL service), Docker/compose release with auto-migrate, docs/CLAUDE.md
@@ -45,6 +46,17 @@ store raw rows in MySQL without double counting, categorise, and analyse income/
   reversal. Real-sample smoke (counts only): 164 rows parsed, 163 inserted (1 exact duplicate line inside the file collapsed), second
   import inserted 0 / updated 0 / unchanged 164, 132 uncategorised of 163.
 
+- T5 Analytics queries (delegated writer; commit 86682ee): src/lib/server/analytics (summary w/ previous-period delta, timeSeries zero-fill,
+  categoryBreakdown, categoryTrend top-N + Other, contributions, topMerchants, recurring, transactions, dataRange). Outputs in cents, spend positive,
+  transfer/ignore excluded unless includeTransfers. Latest balance = newest date, lowest id of that day (bank lists a day newest-first).
+  Tests: pure bucket/recurring unit tests + MySQL integration with a seeded dataset (zero-fill, transfer exclusion, person split, delta, recurring,
+  normalisation). Committed before T4 because it only shares importers/merchant.ts.
+- T4 Admin (delegated writer; commit 62f89b9): /admin Imports, Review, Categories, Rules; logic in src/lib/server/admin/*.ts; shared cleanMerchant
+  (importers/merchant.ts); Pager/ColorPicker components; BODY_SIZE_LIMIT=25M in Dockerfile. Evidence: unit/integration specs (merchant cleaning,
+  rule creation + re-apply counts, category archive keeps statements) and Playwright e2e on a throwaway hearth_e2e DB (synthetic xls upload,
+  re-upload => 0 inserted, review assign + rule). Route: delegated; trigger: 2+ non-trivial files.
+  Checks: lint, svelte-check, 74 server tests, build, 4 e2e all pass. Visual check via screenshots (desktop imports, mobile review).
+
 ## Next step
 
-T4 (admin UI: upload, history, categories/rules CRUD, uncategorised review)
+T6 (dashboard UI with ECharts on top of src/lib/server/analytics)
