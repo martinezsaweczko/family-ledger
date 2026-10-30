@@ -7,7 +7,7 @@ import { setupTestDb } from '../testing/test-db.ts';
 
 let handle: DbHandle | null = null;
 beforeAll(async () => {
-	handle = await setupTestDb();
+	handle = await setupTestDb('migrate');
 });
 afterAll(async () => {
 	await handle?.pool.end();
