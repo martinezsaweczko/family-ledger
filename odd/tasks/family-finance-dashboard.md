@@ -25,8 +25,8 @@ store raw rows in MySQL without double counting, categorise, and analyse income/
 - [x] T3 Categorizer (rules engine, seed categories/rules, person attribution for salary transfers) + tests
 - [x] T4 Admin: upload/import history, categories & rules CRUD, uncategorised review/manual override
 - [x] T5 Analytics queries (period/granularity/category/person filters) + tests
-- [ ] T6 Dashboard UI (ECharts): KPIs, income vs expenses, categories, trends, contributions, drill-down, recurring
-- [ ] T7 Attractive landing page
+- [x] T6 Dashboard UI (ECharts): KPIs, income vs expenses, categories, trends, contributions, drill-down, recurring
+- [x] T7 Attractive landing page
 - [ ] T8 CI (MySQL service), Docker/compose release with auto-migrate, docs/CLAUDE.md
 
 ## Progress / evidence
@@ -57,6 +57,16 @@ store raw rows in MySQL without double counting, categorise, and analyse income/
   re-upload => 0 inserted, review assign + rule). Route: delegated; trigger: 2+ non-trivial files.
   Checks: lint, svelte-check, 74 server tests, build, 4 e2e all pass. Visual check via screenshots (desktop imports, mobile review).
 
+- T6 Dashboard (delegated writer; commit fedbfc7): /dashboard (filter bar in URL, 5 KPIs with delta arrow+text, income vs expenses, category donut+list,
+  stacked category trend, contributions, top merchants, recurring list, balance line), /dashboard/category/[slug], /dashboard/transactions, global nav in root layout.
+  Chart 7 choice: balance-over-time line instead of a month x category heatmap, because the stacked category trend already shows category x time,
+  while the closing balance is the only view of liquidity/runway. Ranges are anchored at the latest statement date (data is imported by hand).
+  Pure logic (presets, URL parsing, insight text, balance buckets) unit tested; 98 server tests pass. Route: delegated; trigger: 2+ non-trivial files.
+  Evidence: lint, svelte-check, build, 12 Playwright e2e pass (synthetic seed e2e/synthetic.ts); desktop+mobile screenshots reviewed, horizontal overflow
+  from the sr-only tables fixed; web-design-guidelines rules fetched and applied (heading order, duplicate #content id, theme-color, search input attrs).
+- T7 Landing (delegated writer; commit 3ab21ab): hero with live balance/month numbers and an SVG income-vs-expenses chart from real monthly data
+  (labelled sample illustration when empty), four feature rows with inline SVG icons, CTA band, footer. e2e covers empty and populated states.
+
 ## Next step
 
-T6 (dashboard UI with ECharts on top of src/lib/server/analytics)
+T8 (CI with MySQL service, Docker/compose release, docs)
