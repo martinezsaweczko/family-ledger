@@ -27,7 +27,7 @@ store raw rows in MySQL without double counting, categorise, and analyse income/
 - [x] T5 Analytics queries (period/granularity/category/person filters) + tests
 - [x] T6 Dashboard UI (ECharts): KPIs, income vs expenses, categories, trends, contributions, drill-down, recurring
 - [x] T7 Attractive landing page
-- [ ] T8 CI (MySQL service), Docker/compose release with auto-migrate, docs/CLAUDE.md
+- [x] T8 CI (MySQL service), Docker/compose release with auto-migrate, docs/CLAUDE.md
 
 ## Progress / evidence
 
@@ -67,6 +67,22 @@ store raw rows in MySQL without double counting, categorise, and analyse income/
 - T7 Landing (delegated writer; commit 3ab21ab): hero with live balance/month numbers and an SVG income-vs-expenses chart from real monthly data
   (labelled sample illustration when empty), four feature rows with inline SVG icons, CTA band, footer. e2e covers empty and populated states.
 
+- T8 CI/release/docs (delegated writer; commits 164bcf4 + admin layout cleanup 9cd1bd8): ci.yml (reusable, MySQL 8.4 service, drift check, unit, build, e2e),
+  docker.yml (tests -> image build + smoke vs MySQL -> GHCR push only on main/v* push), Dockerfile (labels, HEALTHCHECK, placeholder DATABASE_URL at build
+  because Kit 3 validates env at build), compose.prod.yaml, .env.example, README. Route: delegated; trigger: 2+ non-trivial files.
+  Evidence: podman build OK; prod stack run under a throwaway project on port 3999: GET / 200, GET /dashboard 200, 7 app tables + __drizzle_migrations
+  created, runs as user node; everything torn down (dev db untouched). lint, check, 98 server tests, build, 12 e2e pass; drizzle-kit generate => no changes.
+  NOT verified: the GitHub workflows themselves (YAML parses only), the Docker HEALTHCHECK status (podman builds OCI format and ignores it), GHCR push.
+
+## Remaining / future ideas
+
+- Per-category budgets with progress and alerts
+- Savings goals
+- CSV and other bank importers
+- Backups / data export (scheduled mysqldump, CSV export)
+- Anomaly alerts (unusual amounts, new recurring charges)
+- Client component tests (the browser vitest project currently has none)
+
 ## Next step
 
-T8 (CI with MySQL service, Docker/compose release, docs)
+Push the branch and open a PR (user decision); set HEARTH_IMAGE to the real GHCR path on the server.
