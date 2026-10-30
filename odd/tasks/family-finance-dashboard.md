@@ -21,7 +21,7 @@ store raw rows in MySQL without double counting, categorise, and analyse income/
 
 - [x] T1 DB layer: drizzle schema (accounts, import_batches, statements, categories, category_rules, people), migrations, auto-migrate on startup, seed
 - [x] T2 Importer framework + Deutsche Bank importer + dedup upsert + tests (synthetic fixture)
-- [ ] T3 Categorizer (rules engine, seed categories/rules, person attribution for salary transfers) + tests
+- [x] T3 Categorizer (rules engine, seed categories/rules, person attribution for salary transfers) + tests
 - [ ] T4 Admin: upload/import history, categories & rules CRUD, uncategorised review/manual override
 - [ ] T5 Analytics queries (period/granularity/category/person filters) + tests
 - [ ] T6 Dashboard UI (ECharts): KPIs, income vs expenses, categories, trends, contributions, drill-down, recurring
@@ -35,10 +35,16 @@ store raw rows in MySQL without double counting, categorise, and analyse income/
   (override `MIGRATIONS_DIR`), Dockerfile copies `./drizzle`. Kit 3 has no `$env/dynamic/private`: env declared in src/env.ts
   (`defineEnvVars`) and read from `$app/env/private`. xlsx installed from the SheetJS CDN tarball (npm `xlsx` 0.18.5 is stale/vulnerable).
   Evidence: migrate/seed idempotency integration test passes against local MySQL; built server started, init hook seeded DB, HTTP 200.
-- T2 Importer framework + Deutsche Bank importer (delegated writer; see git log, commit after e8d3bac): RED observed (missing modules),
+- T2 Importer framework + Deutsche Bank importer (delegated writer; commit cff28c8): RED observed (missing modules),
   then GREEN for parser/dedup unit tests (synthetic fixture, fake IBAN) and import-service integration tests (same file twice => 0 inserted,
   overlap => only new rows, identical same-day rows distinct, manual categories preserved).
 
+- T3 Categorizer (delegated writer; commit recorded in git log as `feat(categorizer)`): RED observed (missing modules), GREEN for pure
+  rule-engine tests (contains/regex/priority/direction/inactive, seed-rule sanity) and DB integration (rules applied on import to new
+  uncategorised rows only; manual category survives recategorizeAll and re-import). ANUL.EFECTIVO (inbound) maps to cash-withdrawals as a
+  reversal. Real-sample smoke (counts only): 164 rows parsed, 163 inserted (1 exact duplicate line inside the file collapsed), second
+  import inserted 0 / updated 0 / unchanged 164, 132 uncategorised of 163.
+
 ## Next step
 
-T4
+T4 (admin UI: upload, history, categories/rules CRUD, uncategorised review)

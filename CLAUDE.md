@@ -45,6 +45,13 @@ The design lives in two places only: `DESIGN.md` (rules) and the `@theme` block 
 - `.github/workflows/ci.yml`: lint, check, unit tests, build, e2e on every PR/push.
 - `.github/workflows/docker.yml`: on `main` and `v*` tags, builds and pushes image to GHCR.
 
+## Backend
+
+- DB: Drizzle + mysql2 (`src/lib/server/db`). `npm run db:generate` after editing `schema.ts`; migrations in `/drizzle` are applied (then seeded) automatically by the `init` hook in `src/hooks.server.ts`. Env: `DATABASE_URL` (declared in `src/env.ts`, Kit 3 has no `$env/dynamic/private`).
+- Importers are plugins: one file in `src/lib/server/importers/` + one line in `registry.ts`. `importFile` dedups by `dedup_hash`; manual categories are never overwritten.
+- Local DB: `podman compose up -d db`. DB integration tests use throwaway `hearth_test_*` databases (admin URL `TEST_DATABASE_ADMIN_URL`, default root@127.0.0.1) and skip when MySQL is unreachable.
+- Bank files are never committed or put in tests/fixtures; build synthetic ones (see `importers/test-fixtures.ts`).
+
 ## Gotchas
 
 - `engine-strict=true`; Node 24 (see `.nvmrc`).

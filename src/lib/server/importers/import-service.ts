@@ -2,6 +2,7 @@ import { createHash } from 'node:crypto';
 import { eq, inArray, sql } from 'drizzle-orm';
 import { getDb, type Db } from '../db/index.ts';
 import { accounts, importBatches, statements } from '../db/schema.ts';
+import { categorizeNewRows } from '../categorizer-service.ts';
 import { computeDedupHashes } from './dedup.ts';
 import { detectImporter, getImporter } from './registry.ts';
 
@@ -138,6 +139,9 @@ export async function importFile(
 					}
 				});
 		}
+
+		// Only rows with no category and no manual choice get rules applied.
+		await categorizeNewRows(tx, batchId);
 
 		const rowsUnchanged = parsed.rows.length - inserted - updated;
 		await tx
