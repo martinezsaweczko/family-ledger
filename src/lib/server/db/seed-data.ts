@@ -1,11 +1,18 @@
 export type CategoryKind = 'expense' | 'income' | 'transfer' | 'ignore';
 
+import { DEFAULT_ICON_BY_SLUG } from '../../icons/registry.ts';
+
 export interface SeedCategory {
 	slug: string;
 	name: string;
 	color: string;
 	kind: CategoryKind;
+	/** Key into the icon registry. */
+	icon: string;
 }
+
+/** Spanish name the utilities category had before it was renamed (data migration 0002). */
+export const LEGACY_UTILITIES_NAME = 'Suministros';
 
 /**
  * Colours are mid/dark tones with >= 3:1 contrast on the white card surface of the
@@ -13,11 +20,11 @@ export interface SeedCategory {
  * Order here is the default sort order. "Uncategorised" is deliberately NOT a
  * category: statements without a category have category_id = NULL.
  */
-export const seedCategories: SeedCategory[] = [
+const seedCategoryBase: Omit<SeedCategory, 'icon'>[] = [
 	{ slug: 'supermarket', name: 'Supermarket', color: '#0F9488', kind: 'expense' },
 	{ slug: 'eating-out', name: 'Eating out', color: '#E08A00', kind: 'expense' },
 	{ slug: 'rent-housing', name: 'Rent & housing', color: '#1D4ED8', kind: 'expense' },
-	{ slug: 'utilities', name: 'Suministros', color: '#0369A1', kind: 'expense' },
+	{ slug: 'utilities', name: 'Supplies', color: '#0369A1', kind: 'expense' },
 	{ slug: 'subscriptions', name: 'Subscriptions', color: '#4F5BD5', kind: 'expense' },
 	{ slug: 'entertainment', name: 'Entertainment', color: '#E11D48', kind: 'expense' },
 	{ slug: 'shopping', name: 'Shopping', color: '#A21CAF', kind: 'expense' },
@@ -47,6 +54,11 @@ export const seedCategories: SeedCategory[] = [
 	{ slug: 'other-income', name: 'Other income', color: '#4D7C0F', kind: 'income' },
 	{ slug: 'internal-transfer', name: 'Internal transfer', color: '#64748B', kind: 'transfer' }
 ];
+
+export const seedCategories: SeedCategory[] = seedCategoryBase.map((c) => ({
+	...c,
+	icon: DEFAULT_ICON_BY_SLUG[c.slug]
+}));
 
 export const seedPeople = ['David', 'Joanna'];
 

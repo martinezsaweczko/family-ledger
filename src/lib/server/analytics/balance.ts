@@ -61,6 +61,7 @@ export interface CategoryOption {
 	slug: string;
 	name: string;
 	color: string;
+	icon: string | null;
 	kind: 'expense' | 'income' | 'transfer' | 'ignore';
 }
 
@@ -72,6 +73,7 @@ export async function listCategories(db: Db = getDb()): Promise<CategoryOption[]
 			slug: categories.slug,
 			name: categories.name,
 			color: categories.color,
+			icon: categories.icon,
 			kind: categories.kind
 		})
 		.from(categories)

@@ -2,6 +2,7 @@
 	import { enhance } from '$app/forms';
 	import { resolve } from '$app/paths';
 	import { SvelteURLSearchParams } from 'svelte/reactivity';
+	import CategoryIcon from '#lib/components/CategoryIcon.svelte';
 	import Pager from '#lib/components/Pager.svelte';
 	import { formatMoney } from '#lib/format/money.ts';
 	import type { PageProps } from './$types';
@@ -121,7 +122,10 @@
 					<form method="POST" action={act('assign')} use:enhance class="space-y-3">
 						<input type="hidden" name="statementId" value={row.id} />
 						<div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-							<p class="font-medium break-all">{row.concept}</p>
+							<p class="flex items-start gap-2 font-medium break-all">
+								<CategoryIcon color={null} size="sm" badge />
+								<span>{row.concept}</span>
+							</p>
 							<p class="num shrink-0 font-semibold {row.amountCents < 0 ? '' : 'text-primary-700'}">
 								{row.amountCents < 0 ? 'Out' : 'In'}
 								{formatMoney(Math.abs(row.amountCents))}

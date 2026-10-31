@@ -11,6 +11,7 @@ See README.md for the product overview, importers, configuration and deploy.
 - `npm run test:unit -- --run` — vitest (server + browser component projects)
 - `npm run test:e2e` — playwright (builds and previews the app)
 - `npm run build` — production build to `build/` (`node build`)
+- `make help` — Makefile shortcuts at the repo root: `run` (db + dev server), `test`, `unit`, `e2e`, `ci` (lint+check+test+build), `db`, `db-reset`, `image`, `lint`, `check`, `clean`
 - `podman build -t hearth .` (or docker) — container image; `podman compose -f compose.prod.yaml up -d` — prod-style stack
 
 ## Conventions
@@ -62,6 +63,8 @@ The design lives in two places only: `DESIGN.md` (rules) and the `@theme` block 
 - Dashboard (`/dashboard`, `/dashboard/category/[slug]`, `/dashboard/transactions`): filter state lives in the URL (`range` preset | `from`/`to`, `g`, `cat`, `transfers`, plus `q`/`sort`/`page` on tables); parsing, presets and insight sentences are pure code in `src/lib/dashboard/` (unit tested). Ranges are anchored at the latest statement date, not today. Loaders live in each `+page.server.ts` and share `dashboard/context.server.ts`; they call the analytics functions in parallel and return a `failed` message instead of throwing.
 - Charts: Apache ECharts via `components/Chart.svelte` (client-only init, SVG renderer, ResizeObserver, reduced-motion aware, sr-only data table). Colours come from CSS tokens (`@theme static` in layout.css, read by `dashboard/chart-theme.ts`); option builders are in `dashboard/charts.ts`. Register new ECharts modules in `dashboard/echarts.ts`.
 - e2e: `e2e/synthetic.ts` seeds a fake household (fake IBAN and merchants) into `hearth_e2e`; Playwright runs with one worker because specs share that database. `node e2e/seed-cli.ts <db-url> [--empty]` seeds any throwaway DB for screenshots.
+
+- Category icons: `categories.icon` stores a key of the curated registry in `src/lib/icons/registry.ts` (hand-written Lucide-style inline SVG, no icon dependency). `CategoryIcon.svelte` draws it in the category colour (`.cat-ink`/`.cat-badge`, lifted in dark mode like `.cat-dot`); decorative (aria-hidden) unless given a `label`. The admin picker (`IconPicker.svelte`) is validated server-side against the registry. Adding an icon = one entry in `ICONS` (+ `DEFAULT_ICON_BY_SLUG` for a seeded slug). The utilities category is named "Supplies" (slug `utilities`); migration `0002` renames the old "Suministros" default only if still unedited.
 
 ## Gotchas
 

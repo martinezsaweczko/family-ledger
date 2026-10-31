@@ -1,22 +1,21 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
+	import CategoryIcon from './CategoryIcon.svelte';
 
 	interface Props {
 		name: string;
 		color: string | null;
 		slug: string | null;
+		/** Stored icon key; null falls back to the slug default. */
+		icon?: string | null;
 		/** Query string (with `?`) appended to the drill-down link so filters carry over. */
 		search?: string;
 	}
-	let { name, color, slug, search = '' }: Props = $props();
+	let { name, color, slug, icon = null, search = '' }: Props = $props();
 </script>
 
 <span class="inline-flex min-w-0 items-center gap-2">
-	<span
-		class="cat-dot size-2.5 shrink-0 rounded-full {color ? '' : 'bg-ink-soft'}"
-		style:--cat={color}
-		aria-hidden="true"
-	></span>
+	<CategoryIcon {icon} {slug} {color} size="sm" badge />
 	{#if slug}
 		<a
 			href="{resolve('/dashboard/category/[slug]', { slug })}{search}"

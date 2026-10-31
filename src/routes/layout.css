@@ -236,6 +236,22 @@
 			background-color: oklch(from var(--cat) calc(0.58 + 0.35 * l) c h);
 		}
 	}
+	/* Category icon ink: --cat is the stored colour; dark mode lifts lightness exactly like .cat-dot. */
+	.cat-ink {
+		--cat-c: var(--cat);
+		color: var(--cat-c);
+	}
+	:root[data-theme='dark'] .cat-ink {
+		--cat-c: oklch(from var(--cat) calc(0.58 + 0.35 * l) c h);
+	}
+	@media (prefers-color-scheme: dark) {
+		:root:not([data-theme='light']) .cat-ink {
+			--cat-c: oklch(from var(--cat) calc(0.58 + 0.35 * l) c h);
+		}
+	}
+	.cat-badge {
+		background-color: color-mix(in oklab, var(--cat-c) 14%, transparent);
+	}
 	.pill {
 		@apply inline-flex items-center rounded-full bg-paper px-2.5 py-0.5 text-xs font-medium text-ink-soft;
 	}

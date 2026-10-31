@@ -11,6 +11,7 @@
 		balanceCents: number | null;
 		categoryName: string | null;
 		categoryColor: string | null;
+		categoryIcon: string | null;
 		categorySlug: string | null;
 		personName: string | null;
 	}
@@ -60,6 +61,7 @@
 								name={r.categoryName ?? 'Uncategorised'}
 								color={r.categoryColor}
 								slug={r.categorySlug}
+								icon={r.categoryIcon}
 								{search}
 							/>
 						</p>
@@ -70,6 +72,7 @@
 							name={r.categoryName ?? 'Uncategorised'}
 							color={r.categoryColor}
 							slug={r.categorySlug}
+							icon={r.categoryIcon}
 							{search}
 						/>
 					</td>

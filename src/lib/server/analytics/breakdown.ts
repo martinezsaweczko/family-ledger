@@ -11,6 +11,8 @@ export interface CategoryTotal {
 	slug: string | null;
 	name: string;
 	color: string;
+	/** Registry key; null = default for the slug. */
+	icon: string | null;
 	totalCents: number;
 	/** Share of its side's total (income or expense), 0-100. */
 	sharePct: number;
@@ -35,6 +37,7 @@ export async function categoryBreakdown(
 			slug: categories.slug,
 			name: categories.name,
 			color: categories.color,
+			icon: categories.icon,
 			isIncome: sql<number>`${isIncomeSql}`.as('is_income'),
 			total: sql<string>`COALESCE(SUM(${sideCentsSql}), 0)`,
 			count: sql<string>`COUNT(*)`
@@ -47,6 +50,7 @@ export async function categoryBreakdown(
 			categories.slug,
 			categories.name,
 			categories.color,
+			categories.icon,
 			sql`is_income`
 		);
 
@@ -68,6 +72,7 @@ export async function categoryBreakdown(
 				slug: r.slug,
 				name: r.name ?? 'Uncategorised',
 				color: r.color ?? '#94A3B8',
+				icon: r.icon,
 				totalCents: Number(r.total),
 				sharePct: sideTotal ? (Number(r.total) / sideTotal) * 100 : 0,
 				count: Number(r.count),

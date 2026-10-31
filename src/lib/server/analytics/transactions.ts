@@ -16,6 +16,11 @@ export interface TransactionRow {
 	categoryName: string | null;
 	categorySlug: string | null;
 	categoryColor: string | null;
+	categoryIcon: string | null;
+	/** 'manual' = the user chose the category (survives re-imports); 'rule' = rules decided. */
+	categorySource: 'rule' | 'manual' | null;
+	/** True for rows entered by hand in /admin/manual (not from a bank file). */
+	isManual: boolean;
 	personName: string | null;
 }
 
@@ -63,6 +68,9 @@ export async function transactions(
 			categoryName: categories.name,
 			categorySlug: categories.slug,
 			categoryColor: categories.color,
+			categoryIcon: categories.icon,
+			categorySource: statements.categorySource,
+			isManual: sql<number>`(${statements.importerId} = 'manual')`,
 			personName: people.name
 		})
 		.from(statements)
@@ -72,7 +80,12 @@ export async function transactions(
 		.orderBy(...order)
 		.limit(pageSize)
 		.offset((page - 1) * pageSize);
-	return { rows, total: n, page, pageSize };
+	return {
+		rows: rows.map((r) => ({ ...r, isManual: Boolean(Number(r.isManual)) })),
+		total: n,
+		page,
+		pageSize
+	};
 }
 
 export interface DataRange {

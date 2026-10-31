@@ -1,4 +1,5 @@
 import { asc, count, eq, like } from 'drizzle-orm';
+import { isPickableIcon } from '../../icons/registry.ts';
 import { getDb, type Db } from '../db/index.ts';
 import { categories, statements, type Category } from '../db/schema.ts';
 import {
@@ -16,6 +17,8 @@ export type CategoryKind = (typeof CATEGORY_KINDS)[number];
 export interface CategoryInput {
 	name: string;
 	color: string;
+	/** Registry key, or null to use the slug default / generic tag. */
+	icon: string | null;
 	kind: CategoryKind;
 	sortOrder: number;
 }
@@ -27,6 +30,10 @@ export function validateCategory(raw: Record<string, unknown>): Result<CategoryI
 	else if (name.length > 80) errors.name = 'Name must be at most 80 characters.';
 	const color = normalizeHex(raw.color);
 	if (!color) errors.color = 'Colour must be a hex value such as #0F9488.';
+	const iconRaw = text(raw.icon);
+	if (iconRaw !== '' && !isPickableIcon(iconRaw)) {
+		errors.icon = 'Choose an icon from the list.';
+	}
 	const kind = text(raw.kind) as CategoryKind;
 	if (!CATEGORY_KINDS.includes(kind)) errors.kind = 'Choose a kind.';
 	const sortRaw = text(raw.sortOrder);
@@ -35,7 +42,16 @@ export function validateCategory(raw: Record<string, unknown>): Result<CategoryI
 		errors.sortOrder = 'Sort order must be a whole number.';
 	}
 	if (Object.keys(errors).length) return fail(errors);
-	return { ok: true, value: { name, color: color!, kind, sortOrder: sortOrder! } };
+	return {
+		ok: true,
+		value: {
+			name,
+			color: color!,
+			icon: iconRaw === '' ? null : iconRaw,
+			kind,
+			sortOrder: sortOrder!
+		}
+	};
 }
 
 export interface CategoryRow extends Category {

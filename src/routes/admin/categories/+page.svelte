@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
+	import CategoryIcon from '#lib/components/CategoryIcon.svelte';
 	import ColorPicker from '#lib/components/ColorPicker.svelte';
+	import IconPicker from '#lib/components/IconPicker.svelte';
 	import type { PageProps } from './$types';
 
 	let { data, form }: PageProps = $props();
@@ -14,6 +16,10 @@
 
 	let newColor = $state('#0F9488');
 	let editColors = $state<Record<number, string>>({});
+	let newIcon = $state('');
+	let editIcons = $state<Record<number, string>>({});
+	// Live name per form (for the icon preview); falls back to the saved name.
+	let names = $state<Record<string, string>>({});
 
 	const errorsFor = (action: string, id: number | null) =>
 		form && 'errors' in form && form.action === action && ('id' in form ? form.id === id : true)
@@ -34,6 +40,7 @@
 				value={v.name ?? ''}
 				maxlength="80"
 				required
+				oninput={(e) => (names[prefix] = e.currentTarget.value)}
 				aria-invalid={errors.name ? 'true' : undefined}
 			/>
 			{#if errors.name}<p class="field-error">{errors.name}</p>{/if}
@@ -89,6 +96,12 @@
 			errorsFor('create', null)
 		)}
 		<ColorPicker name="color" bind:value={newColor} error={errorsFor('create', null).color} />
+		<IconPicker
+			bind:value={newIcon}
+			color={newColor}
+			categoryName={names.new ?? ''}
+			error={errorsFor('create', null).icon}
+		/>
 		<button class="btn btn-primary">Add category</button>
 	</form>
 </section>
@@ -99,11 +112,7 @@
 		{#each active as c (c.id)}
 			<li class="card p-4">
 				<div class="flex flex-wrap items-center gap-3">
-					<span
-						class="cat-dot size-6 shrink-0 rounded-full border border-line"
-						style:--cat={c.color}
-						aria-hidden="true"
-					></span>
+					<CategoryIcon icon={c.icon} slug={c.slug} color={c.color} size="md" badge />
 					<p class="font-medium">{c.name}</p>
 					<span class="pill">{c.kind}</span>
 					<span class="num text-sm text-ink-soft">{c.statementCount} statements</span>
@@ -132,6 +141,13 @@
 							bind:value={() => editColors[c.id] ?? c.color, (v) => (editColors[c.id] = v)}
 							error={errorsFor('update', c.id).color}
 						/>
+						<IconPicker
+							bind:value={() => editIcons[c.id] ?? c.icon ?? '', (v) => (editIcons[c.id] = v)}
+							color={editColors[c.id] ?? c.color}
+							categoryName={names[`edit-${c.id}`] ?? c.name}
+							slug={c.slug}
+							error={errorsFor('update', c.id).icon}
+						/>
 						<button class="btn btn-primary">Save changes</button>
 					</form>
 				</details>
@@ -146,11 +162,9 @@
 		<ul class="mt-3 space-y-3">
 			{#each archived as c (c.id)}
 				<li class="card flex flex-wrap items-center gap-3 p-4">
-					<span
-						class="cat-dot size-6 shrink-0 rounded-full border border-line opacity-60"
-						style:--cat={c.color}
-						aria-hidden="true"
-					></span>
+					<span class="opacity-60"
+						><CategoryIcon icon={c.icon} slug={c.slug} color={c.color} size="md" badge /></span
+					>
 					<p class="font-medium text-ink-soft">{c.name}</p>
 					<span class="pill">{c.kind}</span>
 					<span class="num text-sm text-ink-soft">{c.statementCount} statements kept</span>

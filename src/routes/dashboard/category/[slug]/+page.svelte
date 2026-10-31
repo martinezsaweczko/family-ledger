@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
+	import CategoryIcon from '#lib/components/CategoryIcon.svelte';
 	import Chart from '#lib/components/Chart.svelte';
 	import FilterBar from '#lib/components/FilterBar.svelte';
 	import KpiCard from '#lib/components/KpiCard.svelte';
@@ -46,7 +47,7 @@
 		<span>Category</span>
 	</nav>
 	<header class="mb-5 flex items-center gap-3">
-		<span class="cat-dot size-4 rounded-full" style:--cat={cat.color} aria-hidden="true"></span>
+		<CategoryIcon icon={cat.icon} slug={cat.slug} color={cat.color} size="lg" badge />
 		<h1 class="text-3xl font-semibold">{cat.name}</h1>
 		<span class="pill">{cat.kind}</span>
 	</header>

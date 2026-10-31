@@ -240,7 +240,13 @@
 						<ol class="mt-3 divide-y divide-line text-sm" data-testid="category-list">
 							{#each expense as c (c.categoryId ?? 'none')}
 								<li class="flex items-center justify-between gap-3 py-2">
-									<CategoryChip name={c.name} color={c.color} slug={c.slug} {search} />
+									<CategoryChip
+										name={c.name}
+										color={c.categoryId === null ? null : c.color}
+										slug={c.slug}
+										icon={c.icon}
+										{search}
+									/>
 									<span class="num flex shrink-0 items-baseline gap-3">
 										<span class="text-ink-soft">{pct(c.sharePct)}</span>
 										<span class="w-24 text-right font-medium">{formatMoney(c.totalCents)}</span>

@@ -19,6 +19,11 @@ npm install
 npm run dev
 ```
 
+Or use the Makefile (`make help` lists everything): `make run` starts MySQL and the dev server,
+`make test` / `make unit` / `make e2e` run the tests, `make ci` runs lint, check, tests and build,
+`make db` / `make db-reset` start or wipe the local database, `make image` builds the container,
+`make lint`, `make check` and `make clean` do what they say.
+
 Open the printed URL. On start the server waits for MySQL, applies the migrations in `/drizzle`
 and seeds the default categories, rules and people, so there is nothing to set up by hand.
 
@@ -53,12 +58,13 @@ Deduplication, categorisation and storage are shared, so a new importer needs no
 
 ## Categories and rules
 
-Each movement belongs to one category (groceries, utilities, salary contributions and so on; some are
+Each movement belongs to one category (groceries, supplies, salary contributions and so on; some are
 flagged as transfer/ignore and are excluded from totals unless the dashboard "include transfers"
 option is on). Rules (**Admin > Rules**) assign a category by matching the concept text with
 `contains` or `regex`, with a priority, a direction (in/out) and an active flag. Rules run on newly
 imported rows that have no category yet. A category you set by hand is never overwritten by rules or
-re-imports. Salary transfers can be attributed to a person, which feeds the contributions chart.
+re-imports. Each category has an icon (picked from a curated set in **Admin > Categories**) shown
+next to its name everywhere. Salary transfers can be attributed to a person, which feeds the contributions chart.
 
 ## Dedup guarantee
 

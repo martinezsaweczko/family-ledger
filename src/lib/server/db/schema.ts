@@ -42,6 +42,8 @@ export const categories = mysqlTable(
 		slug: varchar('slug', { length: 60 }).notNull(),
 		name: varchar('name', { length: 80 }).notNull(),
 		color: varchar('color', { length: 9 }).notNull(),
+		/** Key into the icon registry (src/lib/icons); NULL = use the slug default / fallback. */
+		icon: varchar('icon', { length: 40 }),
 		kind: mysqlEnum('kind', ['expense', 'income', 'transfer', 'ignore']).notNull(),
 		sortOrder: int('sort_order').notNull().default(0),
 		isActive: boolean('is_active').notNull().default(true)
