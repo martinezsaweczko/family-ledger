@@ -2,7 +2,15 @@ import { createHash } from 'node:crypto';
 import { and, asc, count, eq, gt, inArray, sql } from 'drizzle-orm';
 import { getDb, type Db } from '../db/index.ts';
 import { categories, recurringEntries, statements, type RecurringEntry } from '../db/schema.ts';
-import { fail, isIsoDate, parseCents, parseInteger, text, type Result } from '../admin/validate.ts';
+import {
+	fail,
+	isIsoDate,
+	normalizeDate,
+	parseCents,
+	parseInteger,
+	text,
+	type Result
+} from '../admin/validate.ts';
 import {
 	MANUAL_IMPORTER,
 	activeCategoryId,
@@ -33,7 +41,7 @@ export function validateRecurring(raw: Record<string, unknown>): Result<Recurrin
 	if (!concept) errors.concept = 'Concept is required.';
 	else if (concept.length > 255) errors.concept = 'Concept must be at most 255 characters.';
 	const amountCents = parseCents(raw.amount);
-	if (amountCents === null) errors.amount = 'Enter an amount above 0, e.g. 40 or 40.50.';
+	if (amountCents === null) errors.amount = 'Enter an amount above 0, e.g. 40 or 40,50.';
 	const direction = text(raw.direction || 'out');
 	if (direction !== 'in' && direction !== 'out') errors.direction = 'Choose expense or income.';
 	const frequency = text(raw.frequency) as Frequency;
@@ -45,9 +53,10 @@ export function validateRecurring(raw: Record<string, unknown>): Result<Recurrin
 		errors.anchor =
 			frequency === 'monthly' ? 'Choose a day of the month (1-31).' : 'Choose a weekday.';
 	}
-	const startDate = text(raw.startDate);
+	const startDate = normalizeDate(raw.startDate);
 	if (!isIsoDate(startDate)) errors.startDate = 'Enter a valid start date.';
-	const endRaw = text(raw.endDate);
+	const endText = text(raw.endDate);
+	const endRaw = endText === '' ? '' : normalizeDate(endText) || endText;
 	if (endRaw !== '' && !isIsoDate(endRaw))
 		errors.endDate = 'Enter a valid end date or leave it empty.';
 	else if (endRaw !== '' && isIsoDate(startDate) && endRaw < startDate) {

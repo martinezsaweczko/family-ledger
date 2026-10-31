@@ -48,6 +48,8 @@ export interface FilterState {
 	hasData: boolean;
 }
 
+import { parseDate } from '#lib/format/date.ts';
+
 const ISO = /^\d{4}-\d{2}-\d{2}$/;
 const DAY_MS = 86_400_000;
 const ms = (iso: string) => Date.parse(`${iso}T00:00:00Z`);
@@ -57,6 +59,11 @@ const validDate = (v: string | null): v is string => {
 	if (!v || !ISO.test(v)) return false;
 	const t = ms(v);
 	return !Number.isNaN(t) && iso(t) === v;
+};
+/** URL text for a date: ISO, or dd/mm/yyyy from a form posted without JS. Null when not a real date. */
+const readDate = (v: string | null): string | null => {
+	const parsed = parseDate(v);
+	return parsed !== null && validDate(parsed) ? parsed : null;
 };
 
 const monthStart = (d: string, offset = 0) => {
@@ -146,14 +153,14 @@ export function parseFilters(params: URLSearchParams, bounds: DataBounds): Filte
 		};
 	}
 	const b = { min: bounds.min, max: bounds.max };
-	const fromParam = params.get('from');
-	const toParam = params.get('to');
+	const fromParam = readDate(params.get('from'));
+	const toParam = readDate(params.get('to'));
 	let preset: PresetId;
 	let range: { from: string; to: string };
-	if (validDate(fromParam) || validDate(toParam)) {
+	if (fromParam || toParam) {
 		preset = 'custom';
-		let from = validDate(fromParam) ? fromParam : b.min;
-		let to = validDate(toParam) ? toParam : b.max;
+		let from = fromParam ?? b.min;
+		let to = toParam ?? b.max;
 		if (from > to) [from, to] = [to, from];
 		range = { from, to };
 	} else {

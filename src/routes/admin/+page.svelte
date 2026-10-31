@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import { resolve } from '$app/paths';
+	import { formatDateTime } from '#lib/format/date.ts';
 	import type { PageProps } from './$types';
 
 	let { data, form }: PageProps = $props();
@@ -20,10 +21,7 @@
 		}
 	}
 	const mask = (iban: string) => `••••${iban.slice(-4)}`;
-	const when = (value: string | Date) =>
-		new Intl.DateTimeFormat('en-GB', { dateStyle: 'medium', timeStyle: 'short' }).format(
-			new Date(value)
-		);
+	const when = (value: string | Date) => formatDateTime(value);
 </script>
 
 <svelte:head>

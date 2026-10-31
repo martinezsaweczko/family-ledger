@@ -19,7 +19,6 @@
 		changeInsight,
 		contributionInsight,
 		formatBucket,
-		formatDay,
 		kpiDelta,
 		merchantInsight,
 		pointsDelta,
@@ -28,7 +27,9 @@
 		trendInsight,
 		type KpiDelta
 	} from '#lib/dashboard/insights.ts';
+	import { formatDate } from '#lib/format/date.ts';
 	import { formatMoney } from '#lib/format/money.ts';
+	import { formatPercent } from '#lib/format/number.ts';
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();
@@ -68,7 +69,8 @@
 			{
 				id: 'savings-rate',
 				label: 'Savings rate',
-				value: sum.savingsRate === null ? '–' : `${Math.round(sum.savingsRate * 100)}%`,
+				value:
+					sum.savingsRate === null ? '–' : formatPercent(Math.round(sum.savingsRate * 100) / 100),
 				delta: pointsDelta(sum.savingsRate, prev?.savingsRate ?? null)
 			},
 			{
@@ -129,7 +131,7 @@
 	const pick = (slug: string) =>
 		// eslint-disable-next-line svelte/no-navigation-without-resolve -- resolve() plus the filter query string
 		goto(`${resolve('/dashboard/category/[slug]', { slug })}${search}`);
-	const pct = (n: number) => `${Math.round(n)}%`;
+	const pct = (n: number) => formatPercent(Math.round(n) / 100);
 </script>
 
 <!-- eslint-disable svelte/no-navigation-without-resolve -- every href is built from resolve() plus a query string -->
@@ -178,10 +180,13 @@
 				</div>
 			{/if}
 
-			<section aria-labelledby="h-kpis" class="mt-6 grid grid-cols-2 gap-3 lg:grid-cols-5">
+			<section
+				aria-labelledby="h-kpis"
+				class="mt-6 grid grid-cols-1 gap-3 min-[400px]:grid-cols-2 lg:grid-cols-5"
+			>
 				<h2 id="h-kpis" class="sr-only">Key figures</h2>
 				{#each kpis as k (k.id)}
-					<div class={k.id === 'balance' ? 'col-span-2 lg:col-span-1' : ''}>
+					<div class={k.id === 'balance' ? 'min-[400px]:col-span-2 lg:col-span-1' : ''}>
 						<KpiCard
 							label={k.label}
 							value={k.value}
@@ -405,7 +410,7 @@
 										<tr>
 											<td class="py-2.5 pr-3 font-medium">{r.merchant}</td>
 											<td class="num hidden py-2.5 pr-3 text-ink-soft sm:table-cell"
-												>{formatDay(r.lastDate)}</td
+												>{formatDate(r.lastDate)}</td
 											>
 											<td class="num hidden py-2.5 pr-3 text-right text-ink-soft sm:table-cell"
 												>{r.occurrences}</td

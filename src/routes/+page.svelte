@@ -2,16 +2,15 @@
 	import { resolve } from '$app/paths';
 	import MiniBars from '#lib/components/MiniBars.svelte';
 	import { formatBucket } from '#lib/dashboard/insights.ts';
+	import { formatMonthYear } from '#lib/format/date.ts';
 	import { formatMoney } from '#lib/format/money.ts';
+	import { formatPercent } from '#lib/format/number.ts';
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();
 	const live = $derived(data.live);
 
-	const monthName = (iso: string) =>
-		new Intl.DateTimeFormat('en-GB', { month: 'long', year: 'numeric', timeZone: 'UTC' }).format(
-			new Date(`${iso}T00:00:00Z`)
-		);
+	const monthName = (iso: string) => formatMonthYear(iso, 'long');
 
 	// Clearly labelled sample shown only until the first statement is imported.
 	const sample = [
@@ -94,7 +93,7 @@
 					<p class="num font-display text-4xl font-semibold sm:text-5xl" data-testid="live-balance">
 						{live.balanceCents === null ? '–' : formatMoney(live.balanceCents)}
 					</p>
-					<dl class="mt-5 grid grid-cols-3 gap-3 border-t border-line pt-4">
+					<dl class="mt-5 grid grid-cols-1 gap-3 border-t border-line pt-4 min-[480px]:grid-cols-3">
 						<div>
 							<dt class="text-xs text-ink-soft">Income</dt>
 							<dd class="num mt-1 font-semibold" data-testid="live-income">
@@ -110,7 +109,9 @@
 						<div>
 							<dt class="text-xs text-ink-soft">Savings rate</dt>
 							<dd class="num mt-1 font-semibold" data-testid="live-rate">
-								{live.savingsRate === null ? '–' : `${Math.round(live.savingsRate * 100)}%`}
+								{live.savingsRate === null
+									? '–'
+									: formatPercent(Math.round(live.savingsRate * 100) / 100)}
 							</dd>
 						</div>
 					</dl>

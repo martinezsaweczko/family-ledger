@@ -3,10 +3,11 @@
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
 	import { SvelteURLSearchParams } from 'svelte/reactivity';
+	import DateInput from '#lib/components/DateInput.svelte';
 	import CategoryIcon from '#lib/components/CategoryIcon.svelte';
 	import Pager from '#lib/components/Pager.svelte';
-	import { formatDay } from '#lib/dashboard/insights.ts';
-	import { formatMoney } from '#lib/format/money.ts';
+	import { formatDate } from '#lib/format/date.ts';
+	import { formatMoney, formatMoneyInput } from '#lib/format/money.ts';
 	import type { PageProps } from './$types';
 
 	let { data, form }: PageProps = $props();
@@ -39,7 +40,7 @@
 	/** Action URL that keeps the current filter, search and page. */
 	const act = (name: string) =>
 		`${page.url.pathname}${page.url.search ? `${page.url.search}&` : '?'}/${name}`;
-	const centsText = (cents: number) => (Math.abs(cents) / 100).toFixed(2);
+	const centsText = (cents: number) => formatMoneyInput(Math.abs(cents));
 
 	// Per-form UI state (frequency switches the anchor choices; category drives the icon preview).
 	let freq = $state<Record<string, string>>({});
@@ -112,14 +113,12 @@
 	<div class="grid gap-4 sm:grid-cols-2">
 		<div>
 			<label class="label" for="{prefix}-date">Date</label>
-			<input
+			<DateInput
 				id="{prefix}-date"
 				name="bookingDate"
-				type="date"
-				class="field"
 				value={v.bookingDate ?? data.today}
 				required
-				aria-invalid={errors.bookingDate ? 'true' : undefined}
+				invalid={!!errors.bookingDate}
 			/>
 			{#if errors.bookingDate}<p class="field-error">{errors.bookingDate}</p>{/if}
 		</div>
@@ -131,7 +130,7 @@
 				class="field num"
 				inputmode="decimal"
 				autocomplete="off"
-				placeholder="40.00"
+				placeholder="40,00"
 				value={v.amount ?? ''}
 				required
 				aria-invalid={errors.amount ? 'true' : undefined}
@@ -230,7 +229,7 @@
 				class="field num"
 				inputmode="decimal"
 				autocomplete="off"
-				placeholder="40.00"
+				placeholder="40,00"
 				value={v.amount ?? ''}
 				required
 				aria-invalid={errors.amount ? 'true' : undefined}
@@ -255,19 +254,23 @@
 		{@render categorySelect(prefix, v, errors)}
 		<div>
 			<label class="label" for="{prefix}-start">Starts</label>
-			<input
+			<DateInput
 				id="{prefix}-start"
 				name="startDate"
-				type="date"
-				class="field"
 				value={v.startDate ?? data.today}
 				required
+				invalid={!!errors.startDate}
 			/>
 			{#if errors.startDate}<p class="field-error">{errors.startDate}</p>{/if}
 		</div>
 		<div>
 			<label class="label" for="{prefix}-end">Ends (optional)</label>
-			<input id="{prefix}-end" name="endDate" type="date" class="field" value={v.endDate ?? ''} />
+			<DateInput
+				id="{prefix}-end"
+				name="endDate"
+				value={v.endDate ?? ''}
+				invalid={!!errors.endDate}
+			/>
 			{#if errors.endDate}<p class="field-error">{errors.endDate}</p>{/if}
 		</div>
 		<div class="sm:col-span-2">
@@ -349,8 +352,8 @@
 						<div class="min-w-0">
 							<p class="font-medium">{r.concept}</p>
 							<p class="text-sm text-ink-soft">
-								{describe(r)} · from {formatDay(r.startDate)}{r.endDate
-									? ` to ${formatDay(r.endDate)}`
+								{describe(r)} · from {formatDate(r.startDate)}{r.endDate
+									? ` to ${formatDate(r.endDate)}`
 									: ''}
 							</p>
 						</div>
@@ -472,7 +475,7 @@
 						<div class="min-w-0">
 							<p class="font-medium break-words">{e.concept}</p>
 							<p class="flex flex-wrap items-center gap-x-2 text-sm text-ink-soft">
-								<span>{formatDay(e.bookingDate)}</span>
+								<span>{formatDate(e.bookingDate)}</span>
 								<span>{e.categoryName ?? 'Uncategorised'}</span>
 								{#if e.recurringId}<span class="pill">recurring</span>{/if}
 								{#if e.affectsBalance}<span class="pill">adjusts balance</span>{/if}

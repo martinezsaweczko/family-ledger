@@ -1,5 +1,6 @@
 import type { EChartsCoreOption } from 'echarts/core';
-import { formatMoney } from '#lib/format/money.ts';
+import { formatMoney, formatMoneyCompact } from '#lib/format/money.ts';
+import { formatPercent } from '#lib/format/number.ts';
 import type { ChartTheme } from './chart-theme.ts';
 import type { Granularity } from './filters.ts';
 import { formatBucket } from './insights.ts';
@@ -33,14 +34,8 @@ export function esc(s: string): string {
 	return s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
 }
 
-/** Compact money for axes: 1.2k, 340, 2M. */
-export function compactMoney(cents: number): string {
-	const v = Math.abs(euros(cents));
-	const sign = cents < 0 ? '-' : '';
-	if (v >= 1_000_000) return `${sign}€${+(v / 1_000_000).toFixed(1)}M`;
-	if (v >= 1000) return `${sign}€${+(v / 1000).toFixed(1)}k`;
-	return `${sign}€${Math.round(v)}`;
-}
+/** Compact money for axes: `1,2k €`, `340 €`, `2M €`. */
+export const compactMoney = formatMoneyCompact;
 
 const base = (t: ChartTheme) => ({
 	textStyle: { fontFamily: t.font, color: t.inkSoft, fontSize: 12 },
@@ -190,7 +185,7 @@ export function donutOption(slices: CategorySlice[], t: ChartTheme): EChartsCore
 			extraCssText: `box-shadow:${t.shadow};`,
 			confine: true,
 			formatter: (p: { name: string; value: number; percent: number }) =>
-				`${esc(p.name)}<br/><b>${formatMoney(Math.round(p.value * 100))}</b> (${Math.round(p.percent)}%)`
+				`${esc(p.name)}<br/><b>${formatMoney(Math.round(p.value * 100))}</b> (${formatPercent(Math.round(p.percent) / 100)})`
 		},
 		title: {
 			text: formatMoney(total),

@@ -67,6 +67,20 @@ const makeRecurring = async (h: DbHandle, over: Record<string, string> = {}) => 
 };
 
 describe('validation (no DB)', () => {
+	it('accepts European dates and amounts as typed', () => {
+		const res = validateEntry({
+			bookingDate: '06/03/2026',
+			amount: '1.234,56',
+			direction: 'in',
+			concept: 'Gift'
+		});
+		expect(res).toMatchObject({
+			ok: true,
+			value: { bookingDate: '2026-03-06', amountCents: 123456 }
+		});
+		expect(validateEntry({ bookingDate: '31/02/2026', amount: '1', concept: 'x' }).ok).toBe(false);
+	});
+
 	it('parses amounts, dates and direction for one-off entries', () => {
 		const ok = validateEntry({
 			bookingDate: '2026-03-06',
@@ -83,7 +97,7 @@ describe('validation (no DB)', () => {
 			{ amount: '0' },
 			{ amount: '-3' },
 			{ amount: 'abc' },
-			{ amount: '1.234' },
+			{ amount: '1,234' },
 			{ bookingDate: '2026-02-30' },
 			{ concept: '   ' },
 			{ direction: 'sideways' }

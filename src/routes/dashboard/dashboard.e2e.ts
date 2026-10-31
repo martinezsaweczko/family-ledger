@@ -33,7 +33,7 @@ test.describe.serial('dashboard', () => {
 		page.on('pageerror', (e) => errors.push(String(e)));
 		await page.goto('/dashboard');
 
-		await expect(page.getByTestId('range-caption')).toHaveText('1 Oct 2025 to 26 Mar 2026');
+		await expect(page.getByTestId('range-caption')).toHaveText('01/10/2025 to 26/03/2026');
 		await expect(kpi(page, 'income')).toHaveText(formatMoney(2_400_000));
 		await expect(kpi(page, 'expenses')).toHaveText(formatMoney(spend('2025-10-01')));
 		await expect(kpi(page, 'balance')).toHaveText(formatMoney(SYNTHETIC_LAST_BALANCE()));
@@ -81,8 +81,8 @@ test.describe.serial('dashboard', () => {
 		await expect(page).toHaveURL(/range=3m/);
 		await expect(page).toHaveURL(/g=week/);
 
-		await page.getByLabel('From', { exact: true }).fill('2026-02-01');
-		await page.getByLabel('To', { exact: true }).fill('2026-02-28');
+		await page.getByLabel('From', { exact: true }).fill('01/02/2026');
+		await page.getByLabel('To', { exact: true }).fill('28/02/2026');
 		await page.getByRole('button', { name: 'Apply dates' }).click();
 		await expect(page).toHaveURL(/from=2026-02-01/);
 		await expect(page).toHaveURL(/to=2026-02-28/);

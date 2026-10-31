@@ -6,6 +6,7 @@
 		type FilterState,
 		type PresetId
 	} from '#lib/dashboard/filters.ts';
+	import DateInput from './DateInput.svelte';
 	import { formatRange } from '#lib/dashboard/insights.ts';
 
 	interface Option {
@@ -80,18 +81,11 @@
 			{#if state.includeTransfers}<input type="hidden" name="transfers" value="1" />{/if}
 			<div>
 				<label class="label" for="f-from">From</label>
-				<input
-					id="f-from"
-					name="from"
-					type="date"
-					class="field"
-					value={state.from ?? ''}
-					required
-				/>
+				<DateInput class="w-44" id="f-from" name="from" value={state.from ?? ''} required />
 			</div>
 			<div>
 				<label class="label" for="f-to">To</label>
-				<input id="f-to" name="to" type="date" class="field" value={state.to ?? ''} required />
+				<DateInput class="w-44" id="f-to" name="to" value={state.to ?? ''} required />
 			</div>
 			<button class="btn" type="submit">Apply dates</button>
 		</form>

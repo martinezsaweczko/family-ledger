@@ -1,4 +1,6 @@
+import { formatDate, formatDayMonth, formatMonthYear } from '#lib/format/date.ts';
 import { formatMoney } from '#lib/format/money.ts';
+import { formatPercent } from '#lib/format/number.ts';
 import type { Granularity } from './filters.ts';
 
 /** Direction a KPI moved and whether that is good news. Colour is never the only signal: `text` carries it. */
@@ -10,16 +12,18 @@ export interface KpiDelta {
 
 const FLAT = 0.005;
 
+/** `sharePct` style value (0-100) as `34 %`. */
+const share = (n: number) => formatPercent(Math.round(n) / 100);
+
 /** `better` says which direction is good for the metric (income up, expenses down). */
 export function kpiDelta(pct: number | null, better: 'up' | 'down'): KpiDelta {
 	if (pct === null) return { dir: 'none', tone: 'neutral', text: 'n/a' };
-	if (Math.abs(pct) < FLAT) return { dir: 'flat', tone: 'neutral', text: '0%' };
+	if (Math.abs(pct) < FLAT) return { dir: 'flat', tone: 'neutral', text: formatPercent(0) };
 	const dir = pct > 0 ? 'up' : 'down';
-	const rounded = Math.round(Math.abs(pct) * 100);
 	return {
 		dir,
 		tone: dir === better ? 'good' : 'bad',
-		text: `${pct > 0 ? '+' : '-'}${rounded}%`
+		text: formatPercent(Math.round(pct * 100) / 100, 0, true)
 	};
 }
 
@@ -39,24 +43,22 @@ export function changeInsight(noun: string, pct: number | null): string | null {
 	if (pct === null) return null;
 	const verb = noun.endsWith('s') ? 'are' : 'is';
 	if (Math.abs(pct) < FLAT) return `${noun} ${verb} flat versus the previous period.`;
-	const n = Math.round(Math.abs(pct) * 100);
-	return `${noun} ${verb} ${n}% ${pct > 0 ? 'higher' : 'lower'} than the previous period.`;
+	const n = formatPercent(Math.round(Math.abs(pct) * 100) / 100);
+	return `${noun} ${verb} ${n} ${pct > 0 ? 'higher' : 'lower'} than the previous period.`;
 }
 
 export function topCategoryInsight(list: { name: string; sharePct: number }[]): string | null {
 	const top = list[0];
-	return top
-		? `${top.name} is the largest expense at ${Math.round(top.sharePct)}% of spending.`
-		: null;
+	return top ? `${top.name} is the largest expense at ${share(top.sharePct)} of spending.` : null;
 }
 
 export function contributionInsight(people: { name: string; sharePct: number }[]): string | null {
 	if (!people.length) return null;
 	if (people.length === 1) {
-		return `${people[0].name} contributes ${Math.round(people[0].sharePct)}% of household income.`;
+		return `${people[0].name} contributes ${share(people[0].sharePct)} of household income.`;
 	}
 	const [a, b] = people;
-	return `${a.name} contributes ${Math.round(a.sharePct)}% of household income, ${b.name} ${Math.round(b.sharePct)}%.`;
+	return `${a.name} contributes ${share(a.sharePct)} of household income, ${b.name} ${share(b.sharePct)}.`;
 }
 
 export function recurringInsight(count: number, monthlyCents: number): string | null {
@@ -77,7 +79,7 @@ export function merchantInsight(
 	expenseCents: number
 ): string | null {
 	if (!top || expenseCents <= 0) return null;
-	return `${top.merchant} alone is ${Math.round((top.totalCents / expenseCents) * 100)}% of spending.`;
+	return `${top.merchant} alone is ${share((top.totalCents / expenseCents) * 100)} of spending.`;
 }
 
 export function trendInsight(
@@ -94,28 +96,19 @@ export function trendInsight(
 	return `Spending peaked in ${formatBucket(buckets[peak], granularity)} at ${formatMoney(totals[peak])}.`;
 }
 
-const fmt = (opts: Intl.DateTimeFormatOptions, date: string) =>
-	new Intl.DateTimeFormat('en-GB', { timeZone: 'UTC', ...opts }).format(
-		new Date(`${date}T00:00:00Z`)
-	);
-
-/** Short axis label for the start date of a bucket. */
+/** Short axis label for the start date of a bucket: dd/mm for days and weeks, `Oct 2026` for months. */
 export function formatBucket(bucket: string, g: Granularity): string {
 	switch (g) {
 		case 'day':
 		case 'week':
-			return fmt({ day: 'numeric', month: 'short' }, bucket);
+			return formatDayMonth(bucket);
 		case 'month':
-			return fmt({ month: 'short', year: '2-digit' }, bucket);
+			return formatMonthYear(bucket);
 		default:
 			return bucket.slice(0, 4);
 	}
 }
 
-export function formatDay(date: string): string {
-	return fmt({ day: 'numeric', month: 'short', year: 'numeric' }, date);
-}
-
 export function formatRange(from: string | undefined, to: string | undefined): string {
-	return from && to ? `${formatDay(from)} to ${formatDay(to)}` : 'No data';
+	return from && to ? `${formatDate(from)} to ${formatDate(to)}` : 'No data';
 }

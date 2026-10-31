@@ -28,7 +28,10 @@
 
 <article class="card p-4 sm:p-5" data-testid={testid}>
 	<h3 class="font-sans text-sm font-medium text-ink-soft">{label}</h3>
-	<p class="num mt-1 font-display text-2xl font-semibold sm:text-[1.65rem]" data-kpi-value>
+	<p
+		class="num mt-1 font-display text-xl font-semibold [overflow-wrap:anywhere] min-[400px]:text-2xl sm:text-[1.65rem]"
+		data-kpi-value
+	>
 		{value}
 	</p>
 	{#if delta}

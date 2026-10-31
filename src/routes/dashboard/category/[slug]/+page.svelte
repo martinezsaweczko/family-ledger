@@ -11,6 +11,7 @@
 	import { buildSearch } from '#lib/dashboard/filters.ts';
 	import { kpiDelta, merchantInsight, trendInsight } from '#lib/dashboard/insights.ts';
 	import { formatMoney } from '#lib/format/money.ts';
+	import { formatPercent } from '#lib/format/number.ts';
 	import type { PageProps } from './$types';
 
 	let { data, form }: PageProps = $props();
@@ -65,7 +66,10 @@
 		{#if data.failed}
 			<div class="notice notice-warn mt-6" role="alert">{data.failed}</div>
 		{:else if d}
-			<section aria-labelledby="h-kpis" class="mt-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
+			<section
+				aria-labelledby="h-kpis"
+				class="mt-6 grid grid-cols-1 gap-3 min-[400px]:grid-cols-2 lg:grid-cols-4"
+			>
 				<h2 id="h-kpis" class="sr-only">Key figures</h2>
 				<KpiCard
 					testid="kpi-total"
@@ -77,7 +81,7 @@
 				<KpiCard
 					testid="kpi-share"
 					label={isIncome ? 'Share of income' : 'Share of spending'}
-					value={d.stats ? `${Math.round(d.stats.sharePct)}%` : '–'}
+					value={d.stats ? formatPercent(Math.round(d.stats.sharePct) / 100) : '–'}
 				/>
 				<KpiCard
 					testid="kpi-avg"

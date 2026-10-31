@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { formatDate } from '../../lib/format/date.ts';
 import { formatMoney } from '../../lib/format/money.ts';
 import { createDb } from '../../lib/server/db/index.ts';
 import { statements } from '../../lib/server/db/schema.ts';
@@ -29,7 +30,7 @@ test.describe.serial('manual and recurring payments', () => {
 		await expect(page.getByRole('status').first()).toContainText('Payment added');
 
 		const row = page.getByTestId('manual-row').filter({ hasText: 'Cleaner cash Zq' });
-		await expect(row).toContainText('-€40.00');
+		await expect(row).toContainText('-40,00 €');
 		await expect(row.locator('[data-icon="shopping-bag"]').first()).toBeAttached();
 
 		await page.goto('/dashboard/transactions?range=all&q=Cleaner');
@@ -64,7 +65,7 @@ test.describe.serial('manual and recurring payments', () => {
 		await form.getByLabel('Weekday').selectOption(String(weekdayOf(today)));
 		await form.getByLabel('Amount (EUR)').fill('40');
 		await form.getByLabel('Concept').fill('Weekly cleaner Zq');
-		await form.getByLabel('Starts').fill(today);
+		await form.getByLabel('Starts').fill(formatDate(today));
 		await form.getByRole('button', { name: 'Add recurring payment' }).click();
 		await expect(page.getByRole('status').first()).toContainText('Recurring payment added');
 

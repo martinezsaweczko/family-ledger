@@ -2,7 +2,15 @@ import { createHash, randomUUID } from 'node:crypto';
 import { and, asc, count, desc, eq, isNotNull, isNull, like, sql, type SQL } from 'drizzle-orm';
 import { getDb, type Db } from '../db/index.ts';
 import { accounts, categories, importBatches, statements } from '../db/schema.ts';
-import { fail, isIsoDate, parseCents, parseInteger, text, type Result } from '../admin/validate.ts';
+import {
+	fail,
+	isIsoDate,
+	normalizeDate,
+	parseCents,
+	parseInteger,
+	text,
+	type Result
+} from '../admin/validate.ts';
 
 /** importer_id of every hand-entered or recurring-generated row. */
 export const MANUAL_IMPORTER = 'manual';
@@ -23,10 +31,10 @@ export interface ManualEntryInput {
 
 export function validateEntry(raw: Record<string, unknown>): Result<ManualEntryInput> {
 	const errors: Record<string, string> = {};
-	const bookingDate = text(raw.bookingDate);
+	const bookingDate = normalizeDate(raw.bookingDate);
 	if (!isIsoDate(bookingDate)) errors.bookingDate = 'Enter a valid date.';
 	const amountCents = parseCents(raw.amount);
-	if (amountCents === null) errors.amount = 'Enter an amount above 0, e.g. 40 or 40.50.';
+	if (amountCents === null) errors.amount = 'Enter an amount above 0, e.g. 40 or 40,50.';
 	const direction = text(raw.direction || 'out');
 	if (direction !== 'in' && direction !== 'out') errors.direction = 'Choose expense or income.';
 	const concept = text(raw.concept);

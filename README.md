@@ -58,6 +58,10 @@ Deduplication, categorisation and storage are shared, so a new importer needs no
 
 ## Categories and rules
 
+**Formats.** The interface is in English but uses European formats everywhere: dates `dd/mm/yyyy`, money
+`1.234,56 €`, percentages `12,5 %`. Date fields accept typing (slashes are inserted for you) or a calendar
+picker and reject impossible dates; amount fields accept `40,50`, `40.5` or `1.234,56`.
+
 Each movement belongs to one category (groceries, supplies, salary contributions and so on; some are
 flagged as transfer/ignore and are excluded from totals unless the dashboard "include transfers"
 option is on). Rules (**Admin > Rules**) assign a category by matching the concept text with

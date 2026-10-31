@@ -18,9 +18,10 @@ See README.md for the product overview, importers, configuration and deploy.
 
 - Svelte 5 runes only (`$state`, `$derived`, `$props`); no legacy `export let` / stores for local state.
 - Import shared code via the `#lib/...` package import (SvelteKit 3 removed `$lib`).
-- **Money is integer cents**, formatted only at the edge with `#lib/format/money.ts`. Never floats.
+- **Money is integer cents**, formatted only at the edge with `#lib/format/` (`formatMoney` etc.). Never floats.
+- **European formats everywhere** (UI language stays English): dates `dd/mm/yyyy`, money `1.234,56 €`, percent `12,5 %`. `src/lib/format/` (`date.ts`, `money.ts`, `number.ts`) is the single source of truth: never call `Intl`/`toLocale*` or print a raw ISO date in a template. Month-only labels are English (`Oct 2026`), day axis labels `dd/mm`. Dates travel as ISO `YYYY-MM-DD` (URLs, forms, DB); `parseDate` (ISO or dd/mm/yyyy) and `parseMoney` (`40,50`, `40.5`, `1.234,56`) are the shared tolerant parsers used by server validation. Use `DateInput.svelte` for every date field (never `type=date`; it keeps a hidden ISO input, and without JS the visible field posts dd/mm/yyyy). Tests compare Intl output through `normalizeSpaces` (NBSP/narrow NBSP), never by loosening matchers.
 - Server-only code in `src/lib/server/`. Secrets via `$env/dynamic/private`; never commit `.env`.
-- Tests next to code: `*.spec.ts` (unit), `*.svelte.spec.ts` (component), `*.e2e.ts` (playwright).
+- Tests next to code: `*.spec.ts` (unit), `*.svelte.spec.ts` (component, vitest browser project; `DateInput` has one), `*.e2e.ts` (playwright).
 - Conventional Commits. Small, tested changes.
 
 ## Design
@@ -46,7 +47,7 @@ The design lives in two places only: `DESIGN.md` (rules) and the `@theme` block 
 ## CI/CD and release
 
 - `.github/workflows/docker.yml` is the entry pipeline (push to `main`, `v*` tags, pull requests): job `test` calls `ci.yml` (reusable, also manually runnable), then job `image` builds the image, smoke-tests it against a MySQL container (waits for `/` = 200, tables exist, container healthy) and only on push to `main`/`v*` logs in and pushes to GHCR (`ghcr.io/<owner>/<repo>`, tags branch/latest/semver/sha). PRs never push.
-- `.github/workflows/ci.yml`: MySQL 8.4 service container; `DATABASE_URL` and `TEST_DATABASE_ADMIN_URL` are exported so DB integration tests and e2e really run. Steps: lint, check, migration drift check (`drizzle-kit generate` must leave `/drizzle` unchanged), unit tests (server + browser projects; the client project has no tests yet, `passWithNoTests` is on), build, Playwright e2e.
+- `.github/workflows/ci.yml`: MySQL 8.4 service container; `DATABASE_URL` and `TEST_DATABASE_ADMIN_URL` are exported so DB integration tests and e2e really run. Steps: lint, check, migration drift check (`drizzle-kit generate` must leave `/drizzle` unchanged), unit tests (server + browser projects; the client project holds the `DateInput` component spec), build, Playwright e2e.
 - Workflows cannot be run locally; the image build and the prod stack were verified with podman instead.
 - Image: multi-stage `Dockerfile`, runs as `node`, `HEALTHCHECK` via node fetch, build passes a placeholder `DATABASE_URL` because Kit 3 validates env at build time (not baked into the output). `compose.prod.yaml` = app (`HEARTH_IMAGE`) + MySQL 8.4 with named volume, healthchecks, only the app port published; config in `.env` (see `.env.example`). Tables are created by the app's `init` hook on first start; no manual migration step.
 - Deploy: set `HEARTH_IMAGE`, `MYSQL_ROOT_PASSWORD`, `MYSQL_PASSWORD` in `.env`, then `podman compose -f compose.prod.yaml up -d` (or docker). After editing `schema.ts` always run `npm run db:generate` and commit, or CI fails.

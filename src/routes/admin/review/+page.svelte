@@ -4,6 +4,7 @@
 	import { SvelteURLSearchParams } from 'svelte/reactivity';
 	import CategoryIcon from '#lib/components/CategoryIcon.svelte';
 	import Pager from '#lib/components/Pager.svelte';
+	import { formatDate } from '#lib/format/date.ts';
 	import { formatMoney } from '#lib/format/money.ts';
 	import type { PageProps } from './$types';
 
@@ -131,7 +132,7 @@
 								{formatMoney(Math.abs(row.amountCents))}
 							</p>
 						</div>
-						<p class="text-xs text-ink-soft">{row.bookingDate}</p>
+						<p class="text-xs text-ink-soft">{formatDate(row.bookingDate)}</p>
 						<div class="flex flex-col gap-3 sm:flex-row sm:items-center">
 							<div class="sm:w-60">
 								<label class="sr-only" for="cat-{row.id}">Category for {row.concept}</label>

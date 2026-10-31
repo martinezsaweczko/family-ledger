@@ -1,3 +1,6 @@
+import { parseDate } from '#lib/format/date.ts';
+import { parseMoney } from '#lib/format/money.ts';
+
 export type Result<T> = { ok: true; value: T } | { ok: false; errors: Record<string, string> };
 
 export const fail = (
@@ -45,15 +48,17 @@ export function isDuplicateEntry(err: unknown): boolean {
 }
 
 /**
- * Parses a user-typed money amount ("40", "40.5", "40,50", "1.234,56" is NOT supported) into
- * positive integer cents; null when it is not a positive amount with at most 2 decimals.
+ * Parses a user-typed money amount ("40", "40.5", "40,50", "1.234,56") into positive integer
+ * cents via the shared tolerant parser; null when it is not a positive amount.
  */
 export function parseCents(value: unknown): number | null {
-	if (typeof value !== 'string') return null;
-	const m = /^(\d{1,9})(?:[.,](\d{1,2}))?$/.exec(value.trim());
-	if (!m) return null;
-	const cents = Number(m[1]) * 100 + Number((m[2] ?? '').padEnd(2, '0'));
-	return cents > 0 ? cents : null;
+	const cents = parseMoney(value);
+	return cents !== null && cents > 0 ? cents : null;
+}
+
+/** Form date text (ISO or dd/mm/yyyy) to ISO, or '' when it is not a real date. */
+export function normalizeDate(value: unknown): string {
+	return parseDate(value) ?? '';
 }
 
 /** True for a real calendar date written YYYY-MM-DD. */

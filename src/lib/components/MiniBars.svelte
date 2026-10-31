@@ -51,8 +51,11 @@
 				class="fill-attention-500"
 			/>
 			{#if i % step === 0}
-				<text x={cx} y={H - 6} text-anchor="middle" class="fill-ink-soft text-[10px]"
-					>{m.label}</text
+				<text
+					x={cx < 24 ? 0 : cx > W - 24 ? W : cx}
+					y={H - 6}
+					text-anchor={cx < 24 ? 'start' : cx > W - 24 ? 'end' : 'middle'}
+					class="fill-ink-soft text-[10px]">{m.label}</text
 				>
 			{/if}
 		</g>

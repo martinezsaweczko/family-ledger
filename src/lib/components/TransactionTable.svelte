@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { formatMoney } from '#lib/format/money.ts';
-	import { formatDay } from '#lib/dashboard/insights.ts';
+	import { formatDate } from '#lib/format/date.ts';
 	import CategoryChip from './CategoryChip.svelte';
 	import RowCategoryEditor, { type EditorCategory } from './RowCategoryEditor.svelte';
 
@@ -61,7 +61,7 @@
 			{#each rows as r (r.id)}
 				<tr>
 					<td class="num py-2.5 pr-3 align-top text-ink-soft sm:whitespace-nowrap">
-						{formatDay(r.bookingDate)}
+						{formatDate(r.bookingDate)}
 					</td>
 					<td class="max-w-0 min-w-28 py-2.5 pr-3 align-top">
 						<p class="truncate" title={r.concept}>{r.concept}</p>
