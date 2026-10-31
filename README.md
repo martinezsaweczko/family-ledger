@@ -74,6 +74,30 @@ their category through re-imports, overlapping imports and re-applying rules; am
 imported rows can never be edited. Each category has an icon (picked from a curated set in **Admin > Categories**) shown
 next to its name everywhere. Salary transfers can be attributed to a person, which feeds the contributions chart.
 
+## Fixing uncategorised transactions
+
+The Transactions explorer (`/dashboard/transactions`) is built to clear the "to categorise" pile quickly.
+
+- **Category filter > Uncategorised.** A reserved first option of the category picker, stored in the URL
+  as `uncategorised=1` next to the usual `cat=` list (old URLs without it keep working). It is ORed with
+  any chosen categories (`category IN (...) OR category IS NULL`); on its own it shows only uncategorised
+  rows. Totals and the category breakdown always include uncategorised rows (they count by the sign of
+  the amount and appear as their own **Uncategorised** row with the dashed icon, which links to this
+  view), so nothing is silently dropped.
+- **Source filter** (`source=` in the URL): Any, Needs attention (uncategorised + AI suggestions not yet
+  accepted), AI-assigned, Rule, My edits, Manual entries, Imported. It narrows (AND) every other filter
+  and exists on the explorer only; other pages ignore a stray `source` parameter.
+- **Counter badge** above the table: "N uncategorised in this period" (a link to the filtered view) or,
+  inside it, "N left to categorise". It counts the current period and search, ignoring category/source.
+- **Dashboard banner**: "Categorise them" opens the explorer on the _current range_ (same dates, same
+  transfers setting) with `uncategorised=1`, so the number you clicked is the number you see;
+  "Review queue" still goes to the admin review page.
+- **Fixing in place.** Change category (or Accept an AI suggestion) reloads the list at the same URL, so
+  page, sort, search and filters are kept; the fixed row leaves the filtered list and the counter drops.
+  If that empties the last page you are moved to the previous page. Keyboard focus moves to the control
+  of the row that took its place (or to the list when it is empty). When nothing is left the list shows
+  "All caught up" with a link back to all transactions.
+
 ## Backing up and sharing rules
 
 **Admin > Rules > Import / export** moves your categorisation rules (and the categories they use)

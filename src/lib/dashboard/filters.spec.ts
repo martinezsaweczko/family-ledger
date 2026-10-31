@@ -105,3 +105,57 @@ describe('buildSearch', () => {
 		);
 	});
 });
+
+describe('uncategorised and source filters in the URL', () => {
+	const p = (q: string) => parseFilters(new URLSearchParams(q), bounds);
+
+	it('default to off / any, so old URLs keep working', () => {
+		expect(p('')).toMatchObject({ includeUncategorised: false, source: 'any' });
+		expect(p('range=ytd&cat=3,5&transfers=1')).toMatchObject({
+			categoryIds: [3, 5],
+			includeUncategorised: false,
+			source: 'any'
+		});
+		expect(buildSearch(p('range=ytd&cat=3,5&transfers=1'))).toBe(
+			'?range=ytd&cat=3%2C5&transfers=1'
+		);
+	});
+	it('reads uncategorised=1 alongside categories and a known source', () => {
+		expect(p('cat=3&uncategorised=1&source=attention')).toMatchObject({
+			categoryIds: [3],
+			includeUncategorised: true,
+			source: 'attention'
+		});
+		for (const s of ['ai', 'rule', 'mine', 'manual', 'imported']) {
+			expect(p(`source=${s}`).source).toBe(s);
+		}
+	});
+	it('ignores anything else instead of throwing', () => {
+		expect(p('uncategorised=yes&source=nope')).toMatchObject({
+			includeUncategorised: false,
+			source: 'any'
+		});
+		expect(p('uncategorised=0').includeUncategorised).toBe(false);
+	});
+	it('round-trips through buildSearch and omits the defaults', () => {
+		const q = 'range=all&cat=2&uncategorised=1&source=mine';
+		const state = p(q);
+		const built = buildSearch(state);
+		expect(new URLSearchParams(built)).toEqual(
+			new URLSearchParams('range=all&cat=2&uncategorised=1&source=mine')
+		);
+		expect(p(built.slice(1))).toEqual(state);
+		expect(buildSearch({ ...state, includeUncategorised: false, source: 'any' })).toBe(
+			'?range=all&cat=2'
+		);
+	});
+	it('works without any data too', () => {
+		expect(
+			parseFilters(new URLSearchParams('uncategorised=1&source=ai'), { min: null, max: null })
+		).toMatchObject({
+			hasData: false,
+			includeUncategorised: true,
+			source: 'ai'
+		});
+	});
+});

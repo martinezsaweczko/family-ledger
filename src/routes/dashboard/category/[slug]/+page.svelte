@@ -18,7 +18,11 @@
 
 	// The category picker does not apply here: the page is already one category.
 	const categories = $derived(data.categories);
-	const state = $derived({ ...data.state, categoryIds: [] });
+	const state = $derived({
+		...data.state,
+		categoryIds: [],
+		includeUncategorised: false
+	});
 	const filterSearch = $derived(buildSearch(state));
 	const cat = $derived(data.category);
 	const d = $derived(data.data);

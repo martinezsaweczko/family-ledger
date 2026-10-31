@@ -99,6 +99,34 @@ export async function transactions(
 	};
 }
 
+/**
+ * How many uncategorised rows the current period/transfer settings contain, ignoring any category
+ * or source selection (the "N left to categorise" badge). Optionally limited by a search text.
+ */
+export async function countUncategorised(
+	f: AnalyticsFilter,
+	search = '',
+	db: Db = getDb()
+): Promise<number> {
+	const text = search.trim();
+	const [{ n }] = await db
+		.select({ n: count() })
+		.from(statements)
+		.leftJoin(categories, eq(statements.categoryId, categories.id))
+		.where(
+			and(
+				filterWhere({
+					...f,
+					categoryIds: undefined,
+					source: undefined,
+					includeUncategorised: true
+				}),
+				text ? sql`${statements.concept} LIKE ${`%${escapeLike(text)}%`}` : undefined
+			)
+		);
+	return n;
+}
+
 export interface DataRange {
 	minDate: string | null;
 	maxDate: string | null;

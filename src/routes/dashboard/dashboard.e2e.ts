@@ -50,7 +50,7 @@ test.describe.serial('dashboard', () => {
 
 		const banner = page.getByTestId('uncategorised-banner');
 		await expect(banner).toContainText('6 transactions');
-		await expect(banner.getByRole('link', { name: 'Review them' })).toHaveAttribute(
+		await expect(banner.getByRole('link', { name: 'Review queue' })).toHaveAttribute(
 			'href',
 			/\/admin\/review$/
 		);

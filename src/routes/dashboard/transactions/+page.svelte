@@ -14,6 +14,25 @@
 	const filterSearch = $derived(buildSearch(state));
 	const href = (extra: Record<string, string>) =>
 		`${resolve('/dashboard/transactions')}${buildSearch(state, extra)}`;
+	// "Only uncategorised" = the fix-them-fast view: nothing else narrows it.
+	const onlyUncategorised = $derived(
+		state.includeUncategorised &&
+			state.categoryIds.length === 0 &&
+			state.source === 'any' &&
+			data.q === ''
+	);
+	const uncategorisedHref = $derived(
+		`${resolve('/dashboard/transactions')}${buildSearch(
+			{ ...state, categoryIds: [], includeUncategorised: true, source: 'any' },
+			{
+				...(data.q ? { q: data.q } : {}),
+				...(data.sort !== 'date_desc' ? { sort: data.sort } : {})
+			}
+		)}`
+	);
+	const allHref = $derived(
+		`${resolve('/dashboard/transactions')}${buildSearch({ ...state, categoryIds: [], includeUncategorised: false, source: 'any' })}`
+	);
 	const keep = $derived({
 		...(data.q ? { q: data.q } : {}),
 		...(data.sort !== 'date_desc' ? { sort: data.sort } : {})
@@ -46,6 +65,7 @@
 			path={resolve('/dashboard/transactions')}
 			categories={data.categories}
 			{keep}
+			showSource
 		/>
 
 		<section class="card mt-6 p-5" aria-label="Transactions">
@@ -77,8 +97,36 @@
 
 			<OverrideNotice {form} />
 
+			{#if !data.failed && data.uncategorisedCount > 0}
+				<p class="mb-3 text-sm" data-testid="uncategorised-count" aria-live="polite">
+					{#if onlyUncategorised}
+						<span class="pill pill-warn"
+							><span class="num">{data.uncategorisedCount}</span>&nbsp;left to categorise</span
+						>
+					{:else}
+						<!-- eslint-disable svelte/no-navigation-without-resolve -- resolve() plus the filter query string -->
+						<a
+							href={uncategorisedHref}
+							class="pill pill-warn relative underline underline-offset-4 after:absolute after:inset-x-0 after:-inset-y-3 after:content-[''] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600"
+							><span class="num">{data.uncategorisedCount}</span>&nbsp;uncategorised in this period.
+							Show only those</a
+						>
+						<!-- eslint-enable svelte/no-navigation-without-resolve -->
+					{/if}
+				</p>
+			{/if}
+
 			{#if data.failed}
 				<div class="notice notice-warn" role="alert">{data.failed}</div>
+			{:else if result && onlyUncategorised && result.total === 0}
+				<div class="px-4 py-12 text-center" data-testid="all-caught-up">
+					<h2 class="text-xl font-semibold">All caught up</h2>
+					<p class="mx-auto mt-2 max-w-md text-ink-soft">
+						Every transaction in this period has a category. Nice work.
+					</p>
+					<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- resolve() plus the filter query string -->
+					<a class="btn mt-6" href={allHref}>Show all transactions</a>
+				</div>
 			{:else if result}
 				<TransactionTable
 					{categories}

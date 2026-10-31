@@ -32,7 +32,7 @@ Use `.num` on every amount. Scale: 12 / 14 / 16 / 20 / 30 / 48.
 ## Shape & elevation
 
 Cards: `rounded-card` (12px), 1px `line` border, `shadow-card` (hairline). Pills fully rounded.
-Buttons 8–12px radius, 44px min touch target.
+Buttons 8–12px radius, 44px min touch target. Dense table rows keep compact visible controls and get the 44px target from an invisible `after:` pseudo-element (`relative` + `after:absolute after:inset-x-0 after:-inset-y-1.5 after:content-['']`, 32px + 2x6px) rather than taller rows.
 
 ## Components (build order)
 

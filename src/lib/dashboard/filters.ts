@@ -30,6 +30,22 @@ export const GRANULARITIES: { id: Granularity; label: string }[] = [
 
 export const DEFAULT_PRESET: PresetId = '6m';
 
+/**
+ * Where a transaction's category came from (the explorer's "Source" select). `attention` is the
+ * to-do list: uncategorised rows plus AI suggestions nobody accepted yet.
+ */
+export type SourceFilter = 'any' | 'attention' | 'ai' | 'rule' | 'mine' | 'manual' | 'imported';
+export const SOURCES: { id: SourceFilter; label: string }[] = [
+	{ id: 'any', label: 'Any source' },
+	{ id: 'attention', label: 'Needs attention' },
+	{ id: 'ai', label: 'AI-assigned' },
+	{ id: 'rule', label: 'Rule' },
+	{ id: 'mine', label: 'My edits' },
+	{ id: 'manual', label: 'Manual entries' },
+	{ id: 'imported', label: 'Imported' }
+];
+const isSource = (v: string | null): v is SourceFilter => SOURCES.some((s) => s.id === v);
+
 export interface DataBounds {
 	min: string | null;
 	max: string | null;
@@ -44,6 +60,10 @@ export interface FilterState {
 	/** True when the URL carried `g=`; false when the granularity was derived from the range. */
 	granularityExplicit: boolean;
 	categoryIds: number[];
+	/** The reserved "Uncategorised" choice of the category filter (`uncategorised=1`): ORed with `categoryIds`. */
+	includeUncategorised: boolean;
+	/** Only meaningful on the transactions explorer; 'any' elsewhere. */
+	source: SourceFilter;
 	includeTransfers: boolean;
 	hasData: boolean;
 }
@@ -139,6 +159,10 @@ export function parseFilters(params: URLSearchParams, bounds: DataBounds): Filte
 	const g = params.get('g');
 	const rest = {
 		categoryIds: [...new Set(categoryIds)],
+		includeUncategorised: params.get('uncategorised') === '1',
+		source: isSource(params.get('source'))
+			? (params.get('source') as SourceFilter)
+			: ('any' as const),
 		includeTransfers
 	};
 	if (!bounds.min || !bounds.max) {
@@ -189,6 +213,8 @@ export function buildSearch(state: FilterState, extra: Record<string, string> = 
 	}
 	if (state.granularityExplicit) p.set('g', state.granularity);
 	if (state.categoryIds.length) p.set('cat', state.categoryIds.join(','));
+	if (state.includeUncategorised) p.set('uncategorised', '1');
+	if (state.source !== 'any') p.set('source', state.source);
 	if (state.includeTransfers) p.set('transfers', '1');
 	for (const [k, v] of Object.entries(extra)) if (v !== '') p.set(k, v);
 	const s = p.toString();

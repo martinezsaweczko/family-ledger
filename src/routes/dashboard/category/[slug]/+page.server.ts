@@ -30,6 +30,7 @@ export const load: PageServerLoad = async ({ url, params }) => {
 	const everything = {
 		...ctx.filter,
 		categoryIds: undefined,
+		includeUncategorised: undefined,
 		includeTransfers: ctx.filter.includeTransfers || category.kind === 'transfer'
 	};
 	const only = { ...everything, categoryIds: [category.id] };

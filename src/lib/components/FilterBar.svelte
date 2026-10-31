@@ -2,10 +2,12 @@
 	import {
 		GRANULARITIES,
 		PRESETS,
+		SOURCES,
 		buildSearch,
 		type FilterState,
 		type PresetId
 	} from '#lib/dashboard/filters.ts';
+	import CategoryIcon from './CategoryIcon.svelte';
 	import DateInput from './DateInput.svelte';
 	import { formatRange } from '#lib/dashboard/insights.ts';
 
@@ -24,24 +26,47 @@
 		keep?: Record<string, string>;
 		/** Hide the category picker (e.g. on a category page). */
 		showCategories?: boolean;
+		/** Show the "Source" select (transactions explorer only). */
+		showSource?: boolean;
 	}
-	let { state, path, categories, keep = {}, showCategories = true }: Props = $props();
+	let {
+		state,
+		path,
+		categories,
+		keep = {},
+		showCategories = true,
+		showSource = false
+	}: Props = $props();
 
 	const base = $derived(path);
 	const presetHref = (id: Exclude<PresetId, 'custom'>) =>
 		`${base}${buildSearch({ ...state, preset: id }, keep)}`;
 	const selected = $derived(new Set(state.categoryIds));
 	const pickable = $derived(categories.filter((c) => c.kind === 'expense' || c.kind === 'income'));
+	const catCount = $derived(selected.size + (state.includeUncategorised ? 1 : 0));
 	const catSummary = $derived(
-		selected.size === 0
+		catCount === 0
 			? 'All categories'
-			: selected.size === 1
-				? (categories.find((c) => selected.has(c.id))?.name ?? '1 category')
-				: `${selected.size} categories`
+			: catCount === 1
+				? state.includeUncategorised
+					? 'Uncategorised'
+					: (categories.find((c) => selected.has(c.id))?.name ?? '1 category')
+				: `${catCount} categories`
 	);
-	const filtersActive = $derived(selected.size > 0 || state.includeTransfers);
+	const filtersActive = $derived(
+		catCount > 0 || state.includeTransfers || (showSource && state.source !== 'any')
+	);
 	const resetHref = $derived(
-		`${base}${buildSearch({ ...state, categoryIds: [], includeTransfers: false }, keep)}`
+		`${base}${buildSearch(
+			{
+				...state,
+				categoryIds: [],
+				includeUncategorised: false,
+				includeTransfers: false,
+				source: 'any'
+			},
+			keep
+		)}`
 	);
 </script>
 
@@ -78,6 +103,12 @@
 			{#each Object.entries(keep) as [k, v] (k)}<input type="hidden" name={k} value={v} />{/each}
 			{#if state.granularityExplicit}<input type="hidden" name="g" value={state.granularity} />{/if}
 			{#each state.categoryIds as id (id)}<input type="hidden" name="cat" value={id} />{/each}
+			{#if state.includeUncategorised}<input type="hidden" name="uncategorised" value="1" />{/if}
+			{#if showSource && state.source !== 'any'}<input
+					type="hidden"
+					name="source"
+					value={state.source}
+				/>{/if}
 			{#if state.includeTransfers}<input type="hidden" name="transfers" value="1" />{/if}
 			<div>
 				<label class="label" for="f-from">From</label>
@@ -128,6 +159,19 @@
 						class="absolute right-0 z-20 mt-1 max-h-72 w-64 overflow-auto rounded-lg border border-line bg-card p-2 shadow-card"
 					>
 						<legend class="sr-only">Categories</legend>
+						<label
+							class="flex min-h-11 cursor-pointer items-center gap-2 rounded px-2 hover:bg-paper"
+						>
+							<input
+								type="checkbox"
+								name="uncategorised"
+								value="1"
+								checked={state.includeUncategorised}
+								class="rounded border-line text-primary-600 focus:ring-primary-500"
+							/>
+							<CategoryIcon color={null} size="sm" />
+							<span class="text-sm">Uncategorised</span>
+						</label>
 						{#each pickable as c (c.id)}
 							<label
 								class="flex min-h-11 cursor-pointer items-center gap-2 rounded px-2 hover:bg-paper"
@@ -149,6 +193,18 @@
 						{/each}
 					</fieldset>
 				</details>
+			{/if}
+			{#if showSource}
+				<div>
+					<label class="label" for="f-source">Source</label>
+					<select id="f-source" name="source" class="field">
+						{#each SOURCES as src (src.id)}
+							<option value={src.id === 'any' ? '' : src.id} selected={state.source === src.id}
+								>{src.label}</option
+							>
+						{/each}
+					</select>
+				</div>
 			{/if}
 			<label class="flex min-h-11 cursor-pointer items-center gap-2 text-sm">
 				<input

@@ -10,8 +10,16 @@
 		/** Offer the one-click Accept (needs a page that exports the shared override actions). */
 		editable?: boolean;
 		suggestedPattern?: string;
+		/** Called after the Accept request finished and the page data reloaded. */
+		onsaved?: () => void;
 	}
-	let { statementId, confidence, editable = false, suggestedPattern = '' }: Props = $props();
+	let {
+		statementId,
+		confidence,
+		editable = false,
+		suggestedPattern = '',
+		onsaved
+	}: Props = $props();
 
 	const uid = $props.id();
 	let withRule = $state(false);
@@ -42,28 +50,32 @@
 			class="inline-flex flex-wrap items-center gap-2"
 			use:enhance={() => {
 				busy = true;
-				return async ({ update }) => {
+				return async ({ update, result }) => {
 					await update();
 					busy = false;
+					if (result.type === 'success') onsaved?.();
 				};
 			}}
 		>
 			<input type="hidden" name="statementId" value={statementId} />
 			<button
 				type="submit"
-				class="inline-flex min-h-8 cursor-pointer items-center rounded px-1 text-xs font-medium text-primary-700 underline decoration-line underline-offset-4 hover:decoration-primary-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600 disabled:opacity-50"
+				class="relative inline-flex min-h-8 cursor-pointer items-center rounded px-1 text-xs font-medium text-primary-700 underline decoration-line underline-offset-4 after:absolute after:inset-x-0 after:-inset-y-1.5 after:content-[''] hover:decoration-primary-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600 disabled:opacity-50"
 				disabled={busy}
 				data-testid="accept-ai"
 				aria-label="Accept the AI category">{busy ? 'Saving…' : 'Accept'}</button
 			>
 			{#if suggestedPattern}
-				<label for="{uid}-rule" class="inline-flex min-h-8 items-center gap-1.5 text-xs">
+				<label
+					for="{uid}-rule"
+					class="relative inline-flex min-h-8 cursor-pointer items-center gap-1.5 text-xs whitespace-nowrap after:absolute after:inset-x-0 after:-inset-y-1.5 after:content-['']"
+				>
 					<input
 						id="{uid}-rule"
 						type="checkbox"
 						name="createRule"
 						bind:checked={withRule}
-						class="rounded border-line text-primary-600 focus:ring-primary-500"
+						class="size-4 rounded border-line text-primary-600 focus:ring-primary-500"
 					/>
 					also create a rule
 				</label>

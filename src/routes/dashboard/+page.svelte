@@ -128,6 +128,16 @@
 	);
 	const balance = $derived(d?.balance ?? []);
 
+	// The banner counts the rows of the CURRENT range, so its link keeps that range (and the
+	// transfers toggle) and only swaps the category selection for "uncategorised".
+	const fixHref = $derived(
+		`${resolve('/dashboard/transactions')}${buildSearch({
+			...state,
+			categoryIds: [],
+			includeUncategorised: true
+		})}`
+	);
+
 	const pick = (slug: string) =>
 		// eslint-disable-next-line svelte/no-navigation-without-resolve -- resolve() plus the filter query string
 		goto(`${resolve('/dashboard/category/[slug]', { slug })}${search}`);
@@ -176,7 +186,12 @@
 						(<span class="num">{formatMoney(uncategorised.cents)}</span>) are uncategorised. They
 						skew the charts below.
 					</p>
-					<a class="btn" href={resolve('/admin/review')}>Review them</a>
+					<div class="flex flex-wrap gap-2">
+						<a class="btn btn-primary" href={fixHref} data-testid="fix-uncategorised"
+							>Categorise them</a
+						>
+						<a class="btn" href={resolve('/admin/review')}>Review queue</a>
+					</div>
 				</div>
 			{/if}
 
@@ -251,6 +266,7 @@
 										slug={c.slug}
 										icon={c.icon}
 										{search}
+										href={c.categoryId === null ? fixHref : undefined}
 									/>
 									<span class="num flex shrink-0 items-baseline gap-3">
 										<span class="text-ink-soft">{pct(c.sharePct)}</span>

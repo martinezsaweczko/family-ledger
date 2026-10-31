@@ -1,4 +1,5 @@
-import { and, between, gte, inArray, lte, eq, sql, type SQL } from 'drizzle-orm';
+import { and, between, eq, gte, inArray, isNull, lte, ne, or, sql, type SQL } from 'drizzle-orm';
+import type { SourceFilter } from '#lib/dashboard/filters.ts';
 import { categories, statements } from '../db/schema.ts';
 import type { CategoryKind } from '../db/seed-data.ts';
 import type { Granularity } from './buckets.ts';
@@ -12,12 +13,18 @@ import type { Granularity } from './buckets.ts';
  *   (a refund inside an expense category lowers spend, it is not income);
  * - categories of kind `transfer` and `ignore` are excluded unless
  *   `includeTransfers` is set, or `kinds` lists them explicitly;
+ * - `includeUncategorised` adds rows without a category to `categoryIds` (OR); on its own it
+ *   selects only uncategorised rows. Totals and breakdowns include such rows anyway (they fall
+ *   back to the sign of the amount and show as an "Uncategorised" bucket), so nothing is dropped;
+ * - `source` narrows by where the category came from (AND with everything else);
  * - `kinds` restricts to categories of those kinds (uncategorised rows are then excluded).
  */
 export interface AnalyticsFilter {
 	from?: string;
 	to?: string;
 	categoryIds?: number[];
+	includeUncategorised?: boolean;
+	source?: SourceFilter;
 	personId?: number;
 	kinds?: CategoryKind[];
 	includeTransfers?: boolean;
@@ -31,6 +38,26 @@ export function assertIsoDate(value: string | undefined, name: string): void {
 	}
 }
 
+/** Manual entries are the rows with importer_id 'manual'; everything else came from a bank file. */
+function sourceWhere(source: Exclude<SourceFilter, 'any'>): SQL {
+	switch (source) {
+		case 'attention':
+			return or(isNull(statements.categoryId), eq(statements.categorySource, 'ai'))!;
+		case 'ai':
+			return eq(statements.categorySource, 'ai');
+		case 'rule':
+			return eq(statements.categorySource, 'rule');
+		case 'mine':
+			return and(eq(statements.categorySource, 'manual'), ne(statements.importerId, 'manual'))!;
+		case 'manual':
+			return eq(statements.importerId, 'manual');
+		case 'imported':
+			return ne(statements.importerId, 'manual');
+		default:
+			throw new Error(`Unknown source: ${String(source)}`);
+	}
+}
+
 /** WHERE clause for statements LEFT JOIN categories. */
 export function filterWhere(f: AnalyticsFilter): SQL | undefined {
 	assertIsoDate(f.from, 'from');
@@ -39,7 +66,11 @@ export function filterWhere(f: AnalyticsFilter): SQL | undefined {
 	if (f.from && f.to) parts.push(between(statements.bookingDate, f.from, f.to));
 	else if (f.from) parts.push(gte(statements.bookingDate, f.from));
 	else if (f.to) parts.push(lte(statements.bookingDate, f.to));
-	if (f.categoryIds?.length) parts.push(inArray(statements.categoryId, f.categoryIds));
+	const byCategory: SQL[] = [];
+	if (f.categoryIds?.length) byCategory.push(inArray(statements.categoryId, f.categoryIds));
+	if (f.includeUncategorised) byCategory.push(isNull(statements.categoryId));
+	if (byCategory.length) parts.push(or(...byCategory));
+	if (f.source && f.source !== 'any') parts.push(sourceWhere(f.source));
 	if (f.personId !== undefined) parts.push(eq(statements.personId, f.personId));
 	if (f.kinds?.length) parts.push(inArray(categories.kind, f.kinds));
 	else if (!f.includeTransfers) {

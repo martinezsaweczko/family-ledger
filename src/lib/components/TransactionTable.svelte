@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { tick } from 'svelte';
 	import { formatMoney } from '#lib/format/money.ts';
 	import { formatDate } from '#lib/format/date.ts';
 	import AiBadge from './AiBadge.svelte';
@@ -35,6 +36,23 @@
 	let { rows, sort, sortHref, search = '', categories }: Props = $props();
 
 	let openId = $state<number | null>(null);
+	let wrapper = $state<HTMLElement>();
+
+	/**
+	 * A row was fixed in place: the list reloads (same URL, so page, sort and filters stay) and the
+	 * row may have left the list. Keep the keyboard where it was: the same row's control if it is
+	 * still there, else the control of the row that moved into its place, else the table itself.
+	 */
+	async function afterRowChange(id: number, index: number) {
+		openId = null;
+		await tick();
+		const controls = [...(wrapper?.querySelectorAll<HTMLElement>('[data-row-control]') ?? [])];
+		const target =
+			controls.find((c) => c.dataset.rowControl === String(id)) ??
+			controls[Math.min(index, controls.length - 1)] ??
+			wrapper;
+		target?.focus();
+	}
 
 	const dateNext = $derived(sort === 'date_desc' ? 'date_asc' : 'date_desc');
 	const amountNext = $derived(sort === 'amount_desc' ? 'amount_asc' : 'amount_desc');
@@ -42,7 +60,13 @@
 		sort.startsWith(key) ? (sort.endsWith('desc') ? 'descending' : 'ascending') : 'none';
 </script>
 
-<div class="overflow-x-auto">
+<div
+	bind:this={wrapper}
+	tabindex="-1"
+	role="region"
+	aria-label="Transactions list"
+	class="overflow-x-auto focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600"
+>
 	<table class="w-full text-left text-sm" data-testid="transactions-table">
 		<thead class="border-b border-line text-xs text-ink-soft">
 			<tr>
@@ -60,12 +84,12 @@
 			</tr>
 		</thead>
 		<tbody class="divide-y divide-line">
-			{#each rows as r (r.id)}
+			{#each rows as r, i (r.id)}
 				<tr>
 					<td class="num py-2.5 pr-3 align-top text-ink-soft sm:whitespace-nowrap">
 						{formatDate(r.bookingDate)}
 					</td>
-					<td class="max-w-0 min-w-28 py-2.5 pr-3 align-top">
+					<td class="max-w-0 min-w-36 py-2.5 pr-3 align-top">
 						<p class="truncate" title={r.concept}>{r.concept}</p>
 						<p class="mt-1 md:hidden">
 							<CategoryChip
@@ -89,6 +113,7 @@
 										statementId={r.id}
 										confidence={r.aiConfidence ?? null}
 										editable={!!categories}
+										onsaved={() => afterRowChange(r.id, i)}
 										suggestedPattern={r.suggestedPattern ?? ''}
 									/>{/if}
 								{#if r.personName}<span>{r.personName}</span>{/if}
@@ -97,7 +122,8 @@
 						{#if categories}
 							<button
 								type="button"
-								class="mt-1 inline-flex min-h-8 cursor-pointer items-center rounded text-xs text-primary-700 underline decoration-line underline-offset-4 hover:decoration-primary-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600"
+								data-row-control={r.id}
+								class="relative mt-1 inline-flex min-h-8 cursor-pointer items-center rounded text-xs text-primary-700 underline decoration-line underline-offset-4 after:absolute after:inset-x-0 after:-inset-y-1.5 after:content-[''] hover:decoration-primary-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600"
 								aria-expanded={openId === r.id}
 								aria-controls="edit-{r.id}"
 								aria-label="Change category for {r.concept}"
@@ -140,7 +166,7 @@
 								{categories}
 								suggestedPattern={r.suggestedPattern ?? r.concept}
 								canClear={r.categorySource === 'manual' && !r.isManual}
-								onclose={() => (openId = null)}
+								onclose={() => afterRowChange(r.id, i)}
 							/>
 						</td>
 					</tr>
