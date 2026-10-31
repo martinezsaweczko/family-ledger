@@ -9,6 +9,7 @@
 		{ href: '/admin', label: 'Imports' } as const,
 		{ href: '/admin/review', label: 'Review' } as const,
 		{ href: '/admin/categories', label: 'Categories' } as const,
+		{ href: '/admin/manual', label: 'Manual' } as const,
 		{ href: '/admin/rules', label: 'Rules' } as const
 	];
 	const current = (href: string) =>
@@ -16,12 +17,12 @@
 </script>
 
 <div class="border-b border-line bg-card">
-	<nav aria-label="Admin" class="mx-auto flex max-w-5xl flex-wrap gap-1 px-5">
+	<nav aria-label="Admin" class="mx-auto flex max-w-5xl gap-1 overflow-x-auto px-5">
 		{#each links as link (link.href)}
 			<a
 				href={resolve(link.href)}
 				aria-current={current(link.href) ? 'page' : undefined}
-				class="-mb-px inline-flex min-h-11 items-center border-b-2 px-3 text-sm font-medium focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-primary-600 {current(
+				class="-mb-px inline-flex min-h-11 shrink-0 items-center border-b-2 px-3 text-sm font-medium focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-primary-600 {current(
 					link.href
 				)
 					? 'border-primary-600 text-primary-700'

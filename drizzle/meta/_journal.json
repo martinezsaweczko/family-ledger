@@ -22,6 +22,13 @@
 			"when": 1793479738677,
 			"tag": "0002_supplies_rename_icon_backfill",
 			"breakpoints": true
+		},
+		{
+			"idx": 3,
+			"version": "5",
+			"when": 1793480559191,
+			"tag": "0003_cooing_starfox",
+			"breakpoints": true
 		}
 	]
 }

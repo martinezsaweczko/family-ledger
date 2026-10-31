@@ -35,7 +35,7 @@ beforeAll(async () => {
 			{ date: '2026-02-06', concept: 'TARJETA-LONELY SHOP', cents: -600 }
 		]);
 	}
-});
+}, 60_000);
 afterAll(async () => {
 	await handle?.pool.end();
 });

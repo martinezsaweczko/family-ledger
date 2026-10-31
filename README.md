@@ -70,6 +70,33 @@ their category through re-imports, overlapping imports and re-applying rules; am
 imported rows can never be edited. Each category has an icon (picked from a curated set in **Admin > Categories**) shown
 next to its name everywhere. Salary transfers can be attributed to a person, which feeds the contributions chart.
 
+## Manual and recurring payments
+
+Some payments never reach the bank file (for example a cleaner paid in cash every Friday). **Admin >
+Manual** lets you add them once, or as a recurring payment (weekly, every two weeks, monthly, with
+an optional end date; pause, resume, edit and end whenever you like). They are stored as rows with
+importer `manual` on the joint account (a synthetic "Manual entries" account is created only if no bank
+file was ever imported), show a "manual" badge in every table, and flow into every chart, list and
+recurring-charge detection like any bank movement. Only manual rows can be edited or deleted, and only
+there; imported rows never.
+
+- **Recurring entries** are generated up to today when the server starts and (at most once a day) when
+  a dashboard or the landing page loads. Generation is idempotent (deterministic id per recurring entry
+  and date), a deleted occurrence is not re-created, editing a recurring payment only affects entries
+  not yet generated, and resuming a paused one does not backfill the gap. Monthly entries on day 29-31
+  use the last day of shorter months.
+- **Balance**: a manual entry does not change the displayed balance unless you tick "Paid from the
+  joint account (adjusts the balance)". The current balance is the latest bank balance plus the
+  ticked manual entries dated after that bank row's date (same-day entries are assumed to be in the
+  bank balance already). The balance-over-time chart shows bank balances only.
+- **Date anchor**: dashboard ranges end at the newest booking date over all rows, bank and manual, that
+  is not in the future. A weekly manual entry after the last import therefore still shows in "This
+  month", but it also moves "now" forward: if you have not imported for a while, the presets will
+  cover mostly the manual rows until you import again.
+- **Cash withdrawals** in the bank file are already counted under "Cash withdrawals". Entering the cash
+  you spent as manual spending on top of that counts it twice; put the withdrawal in "Internal
+  transfer" or leave it as it is. Hearth does not decide this for you.
+
 ## Dedup guarantee
 
 Every row gets `dedup_hash = sha256(account | booking date | value date | concept | amount | balance after)`

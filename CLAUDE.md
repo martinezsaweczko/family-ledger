@@ -68,6 +68,8 @@ The design lives in two places only: `DESIGN.md` (rules) and the `@theme` block 
 
 - Per-row category override: `admin/overrides.ts` (`changeCategory` reuses `assignCategory`; `clearOverride` hands the row back to rules), shared form actions in `admin/override-actions.ts` re-exported as `actions` by `/dashboard/transactions` and `/dashboard/category/[slug]`; `RowCategoryEditor.svelte` posts to the current URL + `&/name` so the query string survives (a bare `?/name` would drop it). `category_source='manual'` rows are never touched by imports, rules or `recategorizeAll` (integration-tested).
 
+- Manual/recurring: `src/lib/server/manual/` (`entries.ts` one-offs, `recurring.ts` templates + idempotent `materialiseRecurring`, `schedule.ts` pure date maths). Manual rows are `statements` with `importer_id='manual'` (hash = random uuid, or sha256 of `recurring:<id>:<date>`), `balance_cents` NULL, linked to the first account via a single `manual` import batch (hidden from the Imports list). `recurring_entries.last_generated` makes deletes/edits/pauses safe. Materialised on server start (hooks.server.ts) and via `ensureMaterialised()` (once a day) in `dashboardContext` and the landing loader. `latestBalance` adds manual rows with `affects_balance` dated after the bank row; `dataRange` anchors at the newest non-future row of any kind. UI: `/admin/manual`.
+
 ## Gotchas
 
 - `engine-strict=true`; Node 24 (see `.nvmrc`).

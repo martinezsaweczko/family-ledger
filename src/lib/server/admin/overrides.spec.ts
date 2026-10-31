@@ -12,7 +12,7 @@ import { changeCategory, clearOverride } from './overrides.ts';
 let handle: DbHandle | null = null;
 beforeAll(async () => {
 	handle = await setupTestDb('overrides');
-});
+}, 60_000);
 afterAll(async () => {
 	await handle?.pool.end();
 });

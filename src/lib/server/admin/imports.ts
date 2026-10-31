@@ -1,4 +1,4 @@
-import { and, count, desc, eq, isNull } from 'drizzle-orm';
+import { and, count, desc, eq, isNull, ne } from 'drizzle-orm';
 import { getDb, type Db } from '../db/index.ts';
 import { accounts, importBatches, statements } from '../db/schema.ts';
 import { ImportError, importFile, type ImportSummary } from '../importers/import-service.ts';
@@ -58,6 +58,7 @@ export async function listBatches(limit = 50, db: Db = getDb()) {
 		})
 		.from(importBatches)
 		.innerJoin(accounts, eq(importBatches.accountId, accounts.id))
+		.where(ne(importBatches.importerId, 'manual'))
 		.orderBy(desc(importBatches.id))
 		.limit(limit);
 }

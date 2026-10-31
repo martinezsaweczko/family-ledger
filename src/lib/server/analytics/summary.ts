@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, isNotNull, lte, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, gt, isNotNull, lte, sql } from 'drizzle-orm';
 import { getDb, type Db } from '../db/index.ts';
 import { categories, statements } from '../db/schema.ts';
 import { previousPeriod } from './buckets.ts';
@@ -69,6 +69,11 @@ export function computeDelta(now: Totals, before: Totals): Delta {
 }
 
 /**
+ * Displayed balance = the latest BANK balance + manual entries flagged `affects_balance`
+ * dated strictly after that bank row's date (and not after `upTo`). Manual rows that are not
+ * flagged (e.g. cash already counted through a withdrawal) never change it. Without any bank
+ * balance there is nothing to adjust, so the result stays null.
+ *
  * The bank lists a day's movements newest first, so within a day the lowest id
  * is the latest movement: order by date DESC, then id ASC.
  */
@@ -84,7 +89,19 @@ export async function latestBalance(
 		)
 		.orderBy(desc(statements.bookingDate), asc(statements.id))
 		.limit(1);
-	return { cents: row?.cents ?? null, date: row?.date ?? null };
+	if (!row || row.cents === null) return { cents: null, date: row?.date ?? null };
+	const [adj] = await db
+		.select({ sum: sql<string>`COALESCE(SUM(${statements.amountCents}), 0)` })
+		.from(statements)
+		.where(
+			and(
+				eq(statements.importerId, 'manual'),
+				eq(statements.affectsBalance, true),
+				gt(statements.bookingDate, row.date),
+				upTo ? lte(statements.bookingDate, upTo) : undefined
+			)
+		);
+	return { cents: row.cents + Number(adj.sum), date: row.date };
 }
 
 export async function summary(f: AnalyticsFilter, db: Db = getDb()): Promise<Summary> {

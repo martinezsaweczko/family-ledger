@@ -1,5 +1,5 @@
 import { createDb, type DbHandle } from '../src/lib/server/db/index.ts';
-import { importBatches, statements } from '../src/lib/server/db/schema.ts';
+import { importBatches, recurringEntries, statements } from '../src/lib/server/db/schema.ts';
 import { seedStatements, type SeedStatement } from '../src/lib/server/analytics/test-seed.ts';
 import { E2E_DATABASE_URL } from './db.mjs';
 
@@ -112,6 +112,7 @@ export const SYNTHETIC_LAST_BALANCE = () => syntheticStatements().at(-1)!.balanc
 
 export async function resetStatements(handle: DbHandle): Promise<void> {
 	await handle.db.delete(statements);
+	await handle.db.delete(recurringEntries);
 	await handle.db.delete(importBatches);
 }
 

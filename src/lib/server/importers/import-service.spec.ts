@@ -9,7 +9,7 @@ import { buildDbXls, sampleRows } from './test-fixtures.ts';
 let handle: DbHandle | null = null;
 beforeAll(async () => {
 	handle = await setupTestDb('import');
-});
+}, 60_000);
 afterAll(async () => {
 	await handle?.pool.end();
 });

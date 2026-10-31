@@ -43,3 +43,22 @@ export function isDuplicateEntry(err: unknown): boolean {
 		code(err) === 'ER_DUP_ENTRY' || code((err as { cause?: unknown })?.cause) === 'ER_DUP_ENTRY'
 	);
 }
+
+/**
+ * Parses a user-typed money amount ("40", "40.5", "40,50", "1.234,56" is NOT supported) into
+ * positive integer cents; null when it is not a positive amount with at most 2 decimals.
+ */
+export function parseCents(value: unknown): number | null {
+	if (typeof value !== 'string') return null;
+	const m = /^(\d{1,9})(?:[.,](\d{1,2}))?$/.exec(value.trim());
+	if (!m) return null;
+	const cents = Number(m[1]) * 100 + Number((m[2] ?? '').padEnd(2, '0'));
+	return cents > 0 ? cents : null;
+}
+
+/** True for a real calendar date written YYYY-MM-DD. */
+export function isIsoDate(value: unknown): value is string {
+	if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+	const d = new Date(`${value}T00:00:00Z`);
+	return !Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === value;
+}

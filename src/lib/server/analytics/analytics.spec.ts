@@ -18,7 +18,7 @@ let handle: DbHandle | null = null;
 beforeAll(async () => {
 	handle = await setupTestDb('analytics');
 	if (handle) await seedStatements(handle.db, dataset);
-});
+}, 60_000);
 afterAll(async () => {
 	await handle?.pool.end();
 });

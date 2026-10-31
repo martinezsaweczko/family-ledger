@@ -1,6 +1,7 @@
-import { and, asc, count, desc, eq, min, max, isNull, sql } from 'drizzle-orm';
+import { and, asc, count, desc, eq, lte, min, max, isNull, sql } from 'drizzle-orm';
 import { getDb, type Db } from '../db/index.ts';
 import { categories, people, statements } from '../db/schema.ts';
+import { todayIso } from '../manual/schedule.ts';
 import { cleanMerchant } from '../importers/merchant.ts';
 import { filterWhere, type AnalyticsFilter } from './filter.ts';
 
@@ -102,11 +103,21 @@ export interface DataRange {
 	uncategorisedCount: number;
 }
 
-/** Bounds of the stored data, for default ranges and the empty state. */
-export async function dataRange(db: Db = getDb()): Promise<DataRange> {
+/**
+ * Bounds of the stored data, for default ranges and the empty state. Ranges are anchored at
+ * `maxDate` = the newest booking date over ALL rows (bank and manual) that is not in the
+ * future, so a weekly manual entry after the last import still shows in "this month".
+ * Rows dated after `today` (scheduled ahead by hand) never push the anchor forward.
+ */
+export async function dataRange(db: Db = getDb(), today: string = todayIso()): Promise<DataRange> {
 	const [r] = await db
 		.select({ lo: min(statements.bookingDate), hi: max(statements.bookingDate), n: count() })
 		.from(statements);
+	const [pastHi] = await db
+		.select({ hi: max(statements.bookingDate) })
+		.from(statements)
+		.where(lte(statements.bookingDate, today));
+	r.hi = pastHi.hi ?? r.hi;
 	const [u] = await db.select({ n: count() }).from(statements).where(isNull(statements.categoryId));
 	return { minDate: r.lo, maxDate: r.hi, count: r.n, uncategorisedCount: u.n };
 }

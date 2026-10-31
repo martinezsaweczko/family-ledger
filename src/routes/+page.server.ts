@@ -1,10 +1,12 @@
 import { dataRange, summary, timeSeries } from '#lib/server/analytics/index.ts';
+import { ensureMaterialised } from '#lib/server/manual/recurring.ts';
 import { presetRange } from '#lib/dashboard/filters.ts';
 import type { PageServerLoad } from './$types';
 
 /** Live numbers for the landing page. "This month" is the month of the latest statement. */
 export const load: PageServerLoad = async () => {
 	try {
+		await ensureMaterialised();
 		const range = await dataRange();
 		if (!range.minDate || !range.maxDate) return { live: null, failed: false };
 		const bounds = { min: range.minDate, max: range.maxDate };

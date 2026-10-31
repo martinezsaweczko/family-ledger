@@ -5,6 +5,7 @@ import {
 	type CategoryOption,
 	type DataRange
 } from '#lib/server/analytics/index.ts';
+import { ensureMaterialised } from '#lib/server/manual/recurring.ts';
 import { parseFilters, type FilterState } from '#lib/dashboard/filters.ts';
 
 export interface DashboardContext {
@@ -16,6 +17,7 @@ export interface DashboardContext {
 
 /** Shared by every dashboard route: URL -> validated filter state -> analytics filter. */
 export async function dashboardContext(url: URL): Promise<DashboardContext> {
+	await ensureMaterialised(); // recurring manual entries up to today, at most once a day
 	const [range, categories] = await Promise.all([dataRange(), listCategories()]);
 	const state = parseFilters(url.searchParams, { min: range.minDate, max: range.maxDate });
 	const filter: AnalyticsFilter = {

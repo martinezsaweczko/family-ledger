@@ -71,6 +71,34 @@ export const categoryRules = mysqlTable(
 	]
 );
 
+/**
+ * Recurring manual entries (e.g. the weekly cleaner paid in cash). `materialiseRecurring`
+ * turns them into rows of `statements` (importer_id = 'manual') up to today.
+ */
+export const recurringEntries = mysqlTable(
+	'recurring_entries',
+	{
+		id: int('id').autoincrement().primaryKey(),
+		concept: varchar('concept', { length: 255 }).notNull(),
+		/** Always positive; `direction` says whether it is spending or income. */
+		amountCents: bigint('amount_cents', { mode: 'number' }).notNull(),
+		direction: mysqlEnum('direction', ['in', 'out']).notNull().default('out'),
+		categoryId: int('category_id').references(() => categories.id),
+		frequency: mysqlEnum('frequency', ['weekly', 'biweekly', 'monthly']).notNull(),
+		/** weekly/biweekly: ISO weekday 1 (Mon) to 7 (Sun); monthly: day of month 1 to 31 (clamped to month end). */
+		anchor: int('anchor').notNull(),
+		startDate: date('start_date', { mode: 'string' }).notNull(),
+		endDate: date('end_date', { mode: 'string' }),
+		isActive: boolean('is_active').notNull().default(true),
+		affectsBalance: boolean('affects_balance').notNull().default(false),
+		note: text('note'),
+		/** Last day already materialised: later runs only generate dates after it, so deleted occurrences stay deleted. */
+		lastGenerated: date('last_generated', { mode: 'string' }),
+		createdAt: timestamp('created_at').notNull().defaultNow()
+	},
+	(t) => [index('recurring_entries_active_idx').on(t.isActive)]
+);
+
 export const importBatches = mysqlTable(
 	'import_batches',
 	{
@@ -111,6 +139,14 @@ export const statements = mysqlTable(
 		categoryId: int('category_id').references(() => categories.id),
 		categorySource: mysqlEnum('category_source', ['rule', 'manual']),
 		personId: int('person_id').references(() => people.id),
+		/** Free-text note, used by manual entries. */
+		note: text('note'),
+		/** Manual entries only: also adjusts the displayed bank balance (see analytics/summary latestBalance). */
+		affectsBalance: boolean('affects_balance').notNull().default(false),
+		/** Set on rows generated from a recurring entry. */
+		recurringId: int('recurring_id').references(() => recurringEntries.id, {
+			onDelete: 'set null'
+		}),
 		firstSeenAt: timestamp('first_seen_at').notNull().defaultNow(),
 		lastSeenAt: timestamp('last_seen_at').notNull().defaultNow()
 	},
@@ -119,11 +155,13 @@ export const statements = mysqlTable(
 		index('statements_booking_date_idx').on(t.bookingDate),
 		index('statements_category_idx').on(t.categoryId),
 		index('statements_account_idx').on(t.accountId),
-		index('statements_batch_idx').on(t.batchId)
+		index('statements_batch_idx').on(t.batchId),
+		index('statements_recurring_idx').on(t.recurringId)
 	]
 );
 
 export type Account = typeof accounts.$inferSelect;
 export type Category = typeof categories.$inferSelect;
 export type CategoryRule = typeof categoryRules.$inferSelect;
+export type RecurringEntry = typeof recurringEntries.$inferSelect;
 export type Statement = typeof statements.$inferSelect;
