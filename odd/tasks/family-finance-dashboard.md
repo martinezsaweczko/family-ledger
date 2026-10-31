@@ -33,6 +33,8 @@ store raw rows in MySQL without double counting, categorise, and analyse income/
 - [x] T11a European date/number formats + DateInput
 - [x] T11b Reuse the MySQL pool across HMR reloads
 - [x] T12 AI categorisation (optional, OpenAI-compatible, mocked tests)
+- [x] T14 Export and import categorisation rules (JSON)
+- [x] T15 Filter transactions by uncategorised and source
 
 ## Progress / evidence
 
