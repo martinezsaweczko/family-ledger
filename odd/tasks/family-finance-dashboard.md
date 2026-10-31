@@ -29,6 +29,10 @@ store raw rows in MySQL without double counting, categorise, and analyse income/
 - [x] T7 Attractive landing page
 - [x] T8 CI (MySQL service), Docker/compose release with auto-migrate, docs/CLAUDE.md
 - [x] T9 Dark mode (System/Light/Dark)
+- [x] T10 Category icons + Supplies rename, per-transaction override, manual/recurring payments
+- [x] T11a European date/number formats + DateInput
+- [x] T11b Reuse the MySQL pool across HMR reloads
+- [x] T12 AI categorisation (optional, OpenAI-compatible, mocked tests)
 
 ## Progress / evidence
 
@@ -95,6 +99,24 @@ store raw rows in MySQL without double counting, categorise, and analyse income/
   Checks (all three): lint, svelte-check, 212 server tests, build, 27 Playwright e2e, drizzle-kit generate => no changes. Visual: 2 screenshot rounds (light/dark x desktop/mobile) on dashboard, transactions, categories, review, manual.
   Fixes found by screenshots: row editor squeezed into the description column (now a full-width row), transactions amount clipped on mobile (date wraps), admin sub-nav wrapped to two lines (scrolls).
   Known: a leaked-connection dev server on the dev `hearth` DB exhausted MySQL max_connections once (raised at runtime to 600); DB spec hooks now have a 60s timeout.
+
+- T11a European formats (delegated writer; commit 768f484): `src/lib/format/` (date, money, number, space) is the single source of truth: dd/mm/yyyy, `1.234,56 €`
+  (es-ES + `useGrouping:'always'`), `12,5 %`, chart axis dd/mm, month labels `Oct 2026`; shared `parseDate` (ISO or dd/mm/yyyy) and tolerant `parseMoney` (`40,50`, `40.5`,
+  `1.234,56`, rejects garbage) used by server validation and URL filters; `DateInput.svelte` replaces every native date input (mask, strict calendar validation, aria-live error,
+  calendar button via hidden type=date + showPicker, hidden ISO input; posts dd/mm/yyyy itself without JS). Route: delegated; trigger: 2+ non-trivial files.
+  Evidence: RED (missing modules) for format specs, then GREEN; DateInput component spec (vitest browser, written after the code), e2e formats (typing, 31/02 and 13/13 rejected,
+  picker, filter bar, no-JS post); updated money/insights/dashboard/manual specs. Screenshots (landing, dashboard, transactions, review, manual, custom range; light/dark x desktop/mobile),
+  4 rounds. Defects fixed: Apply button overlapped by the category dropdown after date fields grew (DateInput width), long euro KPI amounts overflowing 2-column cards at 320px
+  (1 column below 400px, wrapping), landing chart last label clipped (`Mar 2026`), landing income/expense/rate row too tight on narrow screens.
+- T11b DB pool (commit 27ebbfa): handle cached on `globalThis` (symbol key) outside production; RED observed (new module instance created a second pool), GREEN with vi.resetModules spec.
+- T12 AI categorisation (commit 267cee0, migration 0004: `category_source` + 'ai', `ai_confidence`, `ai_model`): `src/lib/server/ai/*`, env AI_BASE_URL/MODEL/API_KEY/TIMEOUT_MS/MIN_CONFIDENCE,
+  precedence manual > rule > ai, runs after import commit (new rows, 200 rows / 60 s, never fails the import) and from the review queue; badge, Accept, Change category, admin
+  status + Test connection. Tests written after the code (RED not observed): 20 pure + 19 DB-integration specs with mocked fetch, e2e with `e2e/ai-stub.mjs` (port 4199) and an AI-less preview (4174).
+  Live smoke (1 call, synthetic text): HTTP 200 in ~2 s, shape `{id, object, created, model, choices[{index, message{role, content}, finish_reason}], usage{prompt_tokens, completion_tokens, total_tokens}}`,
+  content parsed to `[{"id":1,"category":"supermarket","confidence":0.95}]`.
+  Checks: lint, svelte-check, 285 unit tests (server + client), build, 38 Playwright e2e, drizzle-kit generate => no changes.
+  Known: adapter-node 6 only reads `origin` at build time and defaults the protocol to https, so form POSTs to the production `node build` over plain http get 403 (README's ORIGIN advice does not apply);
+  verified with `node build`, not fixed here (svelte.config / deploy decision).
 
 ## Remaining / future ideas
 
