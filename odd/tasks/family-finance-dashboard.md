@@ -122,6 +122,23 @@ store raw rows in MySQL without double counting, categorise, and analyse income/
       Evidence: RED (missing module) then GREEN 23 specs; real `node build` + curl on /admin/rules?/reapply: matching Origin 200, https Origin same host not 403, evil origin 403, no Origin 403, `null` 403;
       same request on the pre-fix build 403. e2e `e2e/csrf.e2e.ts`. vite preview never failed because it derives the origin from the real Host (http://localhost:4173), unlike adapter-node.
 
+- [x] T14 Rules export/import (commit 1277dab; route: delegated; trigger: 2+ non-trivial files): pure `admin/rules-file.ts` (format `hearth.rules` v1, strict parse, `planImport`, `assignPriorities`) + `admin/rules-io.ts`
+      (export, preview, `confirmImport` in ONE transaction re-parsing/re-diffing the payload carried in a hidden field; aborts when more entries are invalid than the preview showed) + `GET /admin/rules/export` + preview/result UI on /admin/rules.
+      Deviations: priority alone is not a conflict and an existing rule's priority is never changed (otherwise a second import of the same file would report conflicts, since appended priorities differ); imported priorities may be shared
+      among the file's own rules (only a clash with an EXISTING rule forces an append) so a roundtrip reproduces the original ties; unknown person = invalid entry; categories created are only those needed by importable rules.
+      Evidence: 10 pure + 8 DB specs (shape without ids/statement data, roundtrip into an empty DB, idempotent re-import, conflict keep/imported, missing category on/off, priority append, abort after a person vanished, tampered payload, recategorised count)
+      and 3 e2e (download content, upload -> preview -> confirm -> 0 created on re-import, bad JSON). Tests were written after the code (RED not observed). Screenshots: 2 rounds (preview/result, light+dark, desktop+mobile), defects fixed: duplicated
+      "Invalid regular expression:" prefix, invalid list order, import card moved under the two tool cards, "everything already here" message wrong when the file only had invalid entries, result skipped-invalid ignored file-level invalid entries.
+      Docs: README "Backing up and sharing rules", CLAUDE.md.
+- [x] T15 Uncategorised + source filters (commit 910f060; route: delegated; trigger: 2+ non-trivial files): `AnalyticsFilter.includeUncategorised` (OR with categories) and `source`, URL `uncategorised=1` / `source=` (legacy URLs untouched), Uncategorised option in the
+      picker, Source select (explorer only), counter badge, banner "Categorise them" (keeps the CURRENT range so the number matches), Uncategorised breakdown row links to the filtered view, in-place refresh with focus restore (same row control, next row, or list),
+      redirect to the last existing page when the last row of a page is fixed, "All caught up" empty state. Finding: uncategorised rows were ALREADY counted in totals (kind NULL, sign decides) and appear as their own breakdown bucket with the dashed icon;
+      now pinned by tests (sum of breakdown = summary; categorised + uncategorised = all). Touch targets: Accept, "also create a rule" label and Change category went from 32px to 44px via an `after:` pseudo-element hit area (measured 32 + 2x6 px; rows keep their height).
+      Evidence: 15 analytics + 5 URL-state specs, 8 e2e (pick Uncategorised, legacy URL, source, change category refresh + focus, page fallback, banner link, breakdown bucket, empty state). Tests written after the code (RED not observed).
+      Screenshots: 3 rounds. Defects fixed: counter pill hit area, "also create a rule" wrapping on mobile (nowrap, wider description column), table wrapper needed role=region for its aria-label.
+      Docs: README "Fixing uncategorised transactions", CLAUDE.md, DESIGN.md (pseudo-element hit area).
+      Checks (T14+T15): lint, svelte-check 0 errors, 340 unit tests (server + browser), build, 51 Playwright e2e, drizzle-kit generate => no changes.
+
 ## Remaining / future ideas
 
 - Per-category budgets with progress and alerts
@@ -129,7 +146,6 @@ store raw rows in MySQL without double counting, categorise, and analyse income/
 - CSV and other bank importers
 - Backups / data export (scheduled mysqldump, CSV export)
 - Anomaly alerts (unusual amounts, new recurring charges)
-- AI Accept button and "also create a rule" checkbox are ~32px high vs the 44px touch target in DESIGN.md
 - Client component tests (the browser vitest project currently has none)
 
 ## Next step
