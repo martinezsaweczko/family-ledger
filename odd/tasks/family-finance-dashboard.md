@@ -80,6 +80,22 @@ store raw rows in MySQL without double counting, categorise, and analyse income/
   Evidence: RED (missing modules) then GREEN for theme/color/tokens specs (contrast pairs both themes; light attention-500/600 failed AA/3:1 and were darkened);
   lint, svelte-check, 167 server tests, build, 16 Playwright e2e pass; 2 screenshot rounds (8 pages x 2 themes x 2 widths); web-design-guidelines rules fetched (summary only), no findings.
 
+- T10a Rename + category icons (delegated writer; commit 97dc9c5): "Suministros" -> "Supplies" (slug `utilities` kept); migration 0002 renames only while the
+  name is still the old default and backfills icons by slug where NULL; `categories.icon` (migration 0001); curated hand-written Lucide-style registry
+  (`src/lib/icons`, no icon dependency), `CategoryIcon`, icons in chips/ranked list/drill-down header/transactions/review/admin list, accessible `IconPicker`
+  (radio group, filter, live preview) validated server-side. Route: delegated; trigger: 2+ non-trivial files.
+  Evidence: RED (seed had no icon) then GREEN registry spec; DB specs for rename-when-default / preserved-when-edited / backfill / idempotent seed; e2e icons render + picker saves + server rejects bad key.
+- T10b Per-transaction category override (commit 79cf3db): `admin/overrides.ts` (`changeCategory` reuses `assignCategory`, `clearOverride`), shared form actions re-exported by
+  /dashboard/transactions and /dashboard/category/[slug], `RowCategoryEditor` posting to the current URL (+`&/action`) so the query string survives, edited/manual badges, optional rule.
+  Evidence: integration test (import, override, same-file and superset re-import, recategorizeAll: override and counts unchanged) passed on first run since it verifies an existing guarantee (no RED); e2e keeps q/sort/range.
+- T10c Manual + recurring (commit 68fb2f7, migration 0003): `statements.note/affects_balance/recurring_id`, `recurring_entries`, `/admin/manual`, `materialiseRecurring` (start + lazy daily),
+  balance = latest bank balance + flagged manual rows dated strictly after it, `dataRange` anchored at the newest non-future row of any kind. Route: delegated.
+  Evidence: RED (missing module) then GREEN schedule spec (weekly/biweekly/monthly clamp, end date); DB specs for idempotency, pause/resume, edit-future-only, deleted occurrence stays deleted,
+  balance rule, analytics inclusion, anchor, validation and "imported rows cannot be edited" were written after the code (RED not observed); e2e add one-off + recurring, badge, balance, immutability.
+  Checks (all three): lint, svelte-check, 212 server tests, build, 27 Playwright e2e, drizzle-kit generate => no changes. Visual: 2 screenshot rounds (light/dark x desktop/mobile) on dashboard, transactions, categories, review, manual.
+  Fixes found by screenshots: row editor squeezed into the description column (now a full-width row), transactions amount clipped on mobile (date wraps), admin sub-nav wrapped to two lines (scrolls).
+  Known: a leaked-connection dev server on the dev `hearth` DB exhausted MySQL max_connections once (raised at runtime to 600); DB spec hooks now have a 60s timeout.
+
 ## Remaining / future ideas
 
 - Per-category budgets with progress and alerts
