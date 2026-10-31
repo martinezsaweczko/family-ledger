@@ -39,7 +39,7 @@
 					onchange={() => (value = swatch.hex)}
 				/>
 				<span
-					class="size-8 rounded-full border border-line ring-offset-2 peer-checked:ring-2 peer-checked:ring-ink peer-focus-visible:ring-2 peer-focus-visible:ring-primary-600"
+					class="size-8 rounded-full border border-line ring-offset-2 ring-offset-card peer-checked:ring-2 peer-checked:ring-ink peer-focus-visible:ring-2 peer-focus-visible:ring-primary-600"
 					style:background-color={swatch.hex}
 				></span>
 				<span class="sr-only">{swatch.name}</span>

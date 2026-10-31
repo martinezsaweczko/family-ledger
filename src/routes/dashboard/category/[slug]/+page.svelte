@@ -46,7 +46,7 @@
 		<span>Category</span>
 	</nav>
 	<header class="mb-5 flex items-center gap-3">
-		<span class="size-4 rounded-full" style:background-color={cat.color} aria-hidden="true"></span>
+		<span class="cat-dot size-4 rounded-full" style:--cat={cat.color} aria-hidden="true"></span>
 		<h1 class="text-3xl font-semibold">{cat.name}</h1>
 		<span class="pill">{cat.kind}</span>
 	</header>

@@ -177,22 +177,22 @@
 		</ul>
 	</section>
 
-	<section class="bg-primary-900 text-white">
+	<section class="bg-band text-on-band">
 		<div class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-6 px-5 py-12">
 			<div class="max-w-xl">
 				<h2 class="text-2xl font-semibold">Start with one statement.</h2>
-				<p class="mt-2 text-primary-100">
+				<p class="mt-2 text-on-band-soft">
 					Import this month's export, then open the dashboard. Do it again next month; nothing is
 					ever counted twice.
 				</p>
 			</div>
 			<div class="flex flex-wrap gap-3">
 				<a
-					class="btn border-white bg-white text-primary-900 hover:bg-primary-50"
+					class="btn border-on-band bg-on-band text-band hover:bg-on-band/90"
 					href={resolve('/admin')}>Import a statement</a
 				>
 				<a
-					class="btn border-primary-100 bg-transparent text-white hover:bg-primary-700"
+					class="btn border-on-band-soft bg-transparent text-on-band hover:bg-on-band/10"
 					href={resolve('/dashboard')}>Open the dashboard</a
 				>
 			</div>

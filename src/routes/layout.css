@@ -4,36 +4,155 @@
 
 @import '@fontsource-variable/inter';
 
-/* Design tokens: "Clear Slate", see DESIGN.md */
+/*
+ * Design tokens: "Clear Slate", see DESIGN.md.
+ * Every colour exists twice: light values on :root, dark values under
+ * :root[data-theme='dark'] and (for System / no-JS) the prefers-color-scheme block below.
+ * Keep the three in sync; src/lib/theme/tokens.spec.ts parses this file and fails if they drift
+ * or if a text/UI pair drops below WCAG AA.
+ */
+:root {
+	color-scheme: light;
+	--t-paper: #f6f8fa;
+	--t-card: #ffffff;
+	--t-line: #dde3ea;
+	--t-line-strong: #7a8a9c;
+	--t-ink: #0f1b2a;
+	--t-ink-soft: #566577;
+	--t-on-primary: #ffffff;
+
+	--t-primary-50: #e6f6f4;
+	--t-primary-100: #c2ebe6;
+	--t-primary-500: #0f9488;
+	--t-primary-600: #0b7a70;
+	--t-primary-700: #0a6159;
+	--t-primary-900: #063a35;
+
+	--t-attention-100: #fdeccd;
+	--t-attention-500: #c97a00;
+	--t-attention-600: #965a00;
+
+	--t-highlight-100: #e4e7fb;
+	--t-highlight-500: #4f5bd5;
+
+	--t-band: #063a35;
+	--t-on-band: #ffffff;
+	--t-on-band-soft: #c2ebe6;
+
+	--t-slate-chart: #64748b;
+	--t-pointer: rgb(15 27 42 / 0.05);
+	--t-shadow-card: 0 1px 2px rgb(15 27 42 / 0.06);
+	--t-shadow-pop: 0 1px 2px rgb(15 27 42 / 0.12);
+}
+
+:root[data-theme='dark'] {
+	color-scheme: dark;
+	--t-paper: #0b1220;
+	--t-card: #111a2b;
+	--t-line: #223047;
+	--t-line-strong: #5d7089;
+	--t-ink: #e6edf5;
+	--t-ink-soft: #93a4b8;
+	--t-on-primary: #04201c;
+
+	--t-primary-50: #0e2b2e;
+	--t-primary-100: #164a4a;
+	--t-primary-500: #2dd4bf;
+	--t-primary-600: #2bc9b5;
+	--t-primary-700: #5eead4;
+	--t-primary-900: #ccfbf1;
+
+	--t-attention-100: #3a2a0c;
+	--t-attention-500: #fbbf24;
+	--t-attention-600: #fcd34d;
+
+	--t-highlight-100: #1f2447;
+	--t-highlight-500: #8b93f5;
+
+	--t-band: #0f2e33;
+	--t-on-band: #e6edf5;
+	--t-on-band-soft: #a7c4c4;
+
+	--t-slate-chart: #8696ab;
+	--t-pointer: rgb(230 237 245 / 0.06);
+	--t-shadow-card: none;
+	--t-shadow-pop: 0 4px 12px rgb(0 0 0 / 0.45);
+}
+
+@media (prefers-color-scheme: dark) {
+	:root:not([data-theme='light']) {
+		color-scheme: dark;
+		--t-paper: #0b1220;
+		--t-card: #111a2b;
+		--t-line: #223047;
+		--t-line-strong: #5d7089;
+		--t-ink: #e6edf5;
+		--t-ink-soft: #93a4b8;
+		--t-on-primary: #04201c;
+
+		--t-primary-50: #0e2b2e;
+		--t-primary-100: #164a4a;
+		--t-primary-500: #2dd4bf;
+		--t-primary-600: #2bc9b5;
+		--t-primary-700: #5eead4;
+		--t-primary-900: #ccfbf1;
+
+		--t-attention-100: #3a2a0c;
+		--t-attention-500: #fbbf24;
+		--t-attention-600: #fcd34d;
+
+		--t-highlight-100: #1f2447;
+		--t-highlight-500: #8b93f5;
+
+		--t-band: #0f2e33;
+		--t-on-band: #e6edf5;
+		--t-on-band-soft: #a7c4c4;
+
+		--t-slate-chart: #8696ab;
+		--t-pointer: rgb(230 237 245 / 0.06);
+		--t-shadow-card: none;
+		--t-shadow-pop: 0 4px 12px rgb(0 0 0 / 0.45);
+	}
+}
+
+/* Tailwind tokens point at the runtime variables above, so utilities follow the theme. */
 @theme static {
 	--font-display: 'Inter Variable', system-ui, sans-serif;
 	--font-sans: 'Inter Variable', system-ui, sans-serif;
 
-	--color-paper: #f6f8fa;
-	--color-card: #ffffff;
-	--color-line: #dde3ea;
-	--color-ink: #0f1b2a;
-	--color-ink-soft: #566577;
+	--color-paper: var(--t-paper);
+	--color-card: var(--t-card);
+	--color-line: var(--t-line);
+	--color-line-strong: var(--t-line-strong);
+	--color-ink: var(--t-ink);
+	--color-ink-soft: var(--t-ink-soft);
+	--color-on-primary: var(--t-on-primary);
 
-	--color-primary-50: #e6f6f4;
-	--color-primary-100: #c2ebe6;
-	--color-primary-500: #0f9488;
-	--color-primary-600: #0b7a70;
-	--color-primary-700: #0a6159;
-	--color-primary-900: #063a35;
+	--color-primary-50: var(--t-primary-50);
+	--color-primary-100: var(--t-primary-100);
+	--color-primary-500: var(--t-primary-500);
+	--color-primary-600: var(--t-primary-600);
+	--color-primary-700: var(--t-primary-700);
+	--color-primary-900: var(--t-primary-900);
 
-	--color-attention-100: #fdeccd;
-	--color-attention-500: #e08a00;
-	--color-attention-600: #b86e00;
+	--color-attention-100: var(--t-attention-100);
+	--color-attention-500: var(--t-attention-500);
+	--color-attention-600: var(--t-attention-600);
 
-	--color-highlight-100: #e4e7fb;
-	--color-highlight-500: #4f5bd5;
+	--color-highlight-100: var(--t-highlight-100);
+	--color-highlight-500: var(--t-highlight-500);
+
+	--color-band: var(--t-band);
+	--color-on-band: var(--t-on-band);
+	--color-on-band-soft: var(--t-on-band-soft);
 
 	/* Neutral chart series ("Other", unattributed). */
-	--color-slate-chart: #64748b;
+	--color-slate-chart: var(--t-slate-chart);
+	--color-pointer: var(--t-pointer);
 
 	--radius-card: 0.75rem;
-	--shadow-card: 0 1px 2px rgb(15 27 42 / 0.06);
+	--shadow-card: var(--t-shadow-card);
+	--shadow-pop: var(--t-shadow-pop);
 }
 
 @layer base {
@@ -51,6 +170,32 @@
 	.num {
 		font-variant-numeric: tabular-nums;
 	}
+	/* @tailwindcss/forms paints checkboxes and radios white; keep them on tokens. */
+	[type='checkbox'],
+	[type='radio'] {
+		background-color: var(--color-card);
+		border-color: var(--color-line-strong);
+	}
+	/* Native form controls pick the scheme from color-scheme; keep placeholders on-token. */
+	::placeholder {
+		color: var(--color-ink-soft);
+		opacity: 0.8;
+	}
+}
+
+/* Brief, subtle colour fade when the user switches theme (class set by theme.ts, never on load). */
+@media (prefers-reduced-motion: no-preference) {
+	html.theme-fade,
+	html.theme-fade *,
+	html.theme-fade *::before,
+	html.theme-fade *::after {
+		transition:
+			background-color 180ms ease-out,
+			border-color 180ms ease-out,
+			color 180ms ease-out,
+			fill 180ms ease-out,
+			stroke 180ms ease-out !important;
+	}
 }
 
 /* Shared admin building blocks, built only from the tokens above */
@@ -62,7 +207,7 @@
 		@apply inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-lg border border-line bg-card px-4 text-sm font-medium text-ink transition-colors hover:bg-paper focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600 disabled:cursor-not-allowed disabled:opacity-50;
 	}
 	.btn-primary {
-		@apply border-primary-600 bg-primary-600 text-white hover:bg-primary-700;
+		@apply border-primary-600 bg-primary-600 text-on-primary hover:border-primary-700 hover:bg-primary-700;
 	}
 	.btn-danger {
 		@apply border-attention-600 text-attention-600 hover:bg-attention-100;
@@ -74,10 +219,22 @@
 		@apply mt-1 text-xs text-ink-soft;
 	}
 	.field {
-		@apply block min-h-11 w-full rounded-lg border-line bg-card text-sm text-ink focus:border-primary-600 focus:ring-2 focus:ring-primary-500;
+		@apply block min-h-11 w-full rounded-lg border-line-strong bg-card text-sm text-ink focus:border-primary-600 focus:ring-2 focus:ring-primary-500;
 	}
 	.field-error {
 		@apply mt-1 text-sm font-medium text-attention-600;
+	}
+	/* Category colour dot: --cat is the stored colour; dark mode lifts lightness (mirrors chartColor). */
+	.cat-dot {
+		background-color: var(--cat);
+	}
+	:root[data-theme='dark'] .cat-dot {
+		background-color: oklch(from var(--cat) calc(0.58 + 0.35 * l) c h);
+	}
+	@media (prefers-color-scheme: dark) {
+		:root:not([data-theme='light']) .cat-dot {
+			background-color: oklch(from var(--cat) calc(0.58 + 0.35 * l) c h);
+		}
 	}
 	.pill {
 		@apply inline-flex items-center rounded-full bg-paper px-2.5 py-0.5 text-xs font-medium text-ink-soft;

@@ -75,7 +75,7 @@
 			multiple
 			required
 			accept={data.importers.flatMap((i) => i.accepts).join(',')}
-			class="mt-2 max-w-full text-sm text-ink-soft file:mr-3 file:min-h-11 file:cursor-pointer file:rounded-lg file:border-0 file:bg-primary-600 file:px-4 file:text-sm file:font-medium file:text-white hover:file:bg-primary-700"
+			class="mt-2 max-w-full text-sm text-ink-soft file:mr-3 file:min-h-11 file:cursor-pointer file:rounded-lg file:border-0 file:bg-primary-600 file:px-4 file:text-sm file:font-medium file:text-on-primary hover:file:bg-primary-700"
 		/>
 	</label>
 	{#if names.length}

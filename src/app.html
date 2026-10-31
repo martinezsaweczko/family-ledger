@@ -4,7 +4,40 @@
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<meta name="text-scale" content="scale" />
-		<meta name="theme-color" content="#f6f8fa" />
+		<meta name="color-scheme" content="light dark" />
+		<meta
+			name="theme-color"
+			content="#f6f8fa"
+			media="(prefers-color-scheme: light)"
+			data-scheme="light"
+		/>
+		<meta
+			name="theme-color"
+			content="#0b1220"
+			media="(prefers-color-scheme: dark)"
+			data-scheme="dark"
+		/>
+		<script>
+			// Runs before first paint: apply the stored theme so there is no flash. Keep in sync with
+			// applyTheme() in src/lib/theme/theme.ts (the same keys and colours).
+			(function () {
+				var pref = 'system';
+				try {
+					var v = localStorage.getItem('hearth-theme');
+					if (v === 'light' || v === 'dark') pref = v;
+				} catch (e) {}
+				var dark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+				var theme = pref === 'system' ? (dark ? 'dark' : 'light') : pref;
+				var root = document.documentElement;
+				root.dataset.themePref = pref;
+				root.dataset.theme = theme;
+				if (pref !== 'system') {
+					var colors = { light: '#f6f8fa', dark: '#0b1220' };
+					var metas = document.querySelectorAll('meta[name="theme-color"]');
+					for (var i = 0; i < metas.length; i++) metas[i].setAttribute('content', colors[theme]);
+				}
+			})();
+		</script>
 		%sveltekit.head%
 	</head>
 	<body data-sveltekit-preload-data="hover">

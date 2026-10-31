@@ -2,6 +2,7 @@
 	import './layout.css';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
+	import ThemeToggle from '#lib/components/ThemeToggle.svelte';
 	import favicon from '#lib/assets/favicon.svg';
 	import type { LayoutProps } from './$types';
 
@@ -41,7 +42,10 @@
 		>
 			Hearth
 		</a>
-		<nav aria-label="Main" class="-mb-px flex flex-wrap gap-1">
+		<nav
+			aria-label="Main"
+			class="order-3 -mb-px flex w-full flex-wrap gap-1 sm:order-none sm:w-auto"
+		>
 			{#each links as link (link.href)}
 				<a
 					href={resolve(link.href)}
@@ -56,6 +60,9 @@
 				</a>
 			{/each}
 		</nav>
+		<div class="my-1 ml-auto sm:order-none">
+			<ThemeToggle />
+		</div>
 	</div>
 </header>
 

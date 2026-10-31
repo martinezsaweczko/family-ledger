@@ -3,6 +3,7 @@ import { formatMoney } from '#lib/format/money.ts';
 import type { ChartTheme } from './chart-theme.ts';
 import type { Granularity } from './filters.ts';
 import { formatBucket } from './insights.ts';
+import { chartColor } from '#lib/theme/color.ts';
 
 /** Plain shapes of the analytics outputs the charts need (kept structural so this stays client-safe). */
 export interface BucketRow {
@@ -45,11 +46,11 @@ const base = (t: ChartTheme) => ({
 	textStyle: { fontFamily: t.font, color: t.inkSoft, fontSize: 12 },
 	tooltip: {
 		trigger: 'axis' as const,
-		axisPointer: { type: 'shadow' as const, shadowStyle: { color: 'rgba(15,27,42,0.05)' } },
+		axisPointer: { type: 'shadow' as const, shadowStyle: { color: t.pointer } },
 		backgroundColor: t.card,
 		borderColor: t.line,
 		textStyle: { color: t.ink, fontSize: 12 },
-		extraCssText: 'box-shadow:0 1px 2px rgb(15 27 42 / 0.12);',
+		extraCssText: `box-shadow:${t.shadow};`,
 		confine: true
 	}
 });
@@ -167,7 +168,11 @@ export function stackedOption(
 			stack: 'total',
 			barMaxWidth: 36,
 			emphasis: { focus: 'series' },
-			itemStyle: { color: s.neutral ? t.slate : s.color, borderColor: t.card, borderWidth: 1 },
+			itemStyle: {
+				color: s.neutral ? t.slate : chartColor(s.color, t.scheme),
+				borderColor: t.card,
+				borderWidth: 1
+			},
 			data: s.values.map(euros)
 		}))
 	};
@@ -182,6 +187,7 @@ export function donutOption(slices: CategorySlice[], t: ChartTheme): EChartsCore
 			backgroundColor: t.card,
 			borderColor: t.line,
 			textStyle: { color: t.ink, fontSize: 12 },
+			extraCssText: `box-shadow:${t.shadow};`,
 			confine: true,
 			formatter: (p: { name: string; value: number; percent: number }) =>
 				`${esc(p.name)}<br/><b>${formatMoney(Math.round(p.value * 100))}</b> (${Math.round(p.percent)}%)`
@@ -208,7 +214,7 @@ export function donutOption(slices: CategorySlice[], t: ChartTheme): EChartsCore
 					name: s.name,
 					value: euros(s.totalCents),
 					slug: s.slug,
-					itemStyle: { color: s.slug ? s.color : t.slate }
+					itemStyle: { color: s.slug ? chartColor(s.color, t.scheme) : t.slate }
 				}))
 			}
 		]

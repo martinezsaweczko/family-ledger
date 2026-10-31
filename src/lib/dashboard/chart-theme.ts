@@ -1,3 +1,5 @@
+import type { Scheme } from '#lib/theme/color.ts';
+
 /** Chart colours come from the Clear Slate tokens in layout.css (read at runtime, never hardcoded). */
 export interface ChartTheme {
 	ink: string;
@@ -10,6 +12,10 @@ export interface ChartTheme {
 	attention: string;
 	/** Neutral series colour ("Other", unattributed). */
 	slate: string;
+	/** Axis-pointer / hover wash. */
+	pointer: string;
+	shadow: string;
+	scheme: Scheme;
 	font: string;
 	animate: boolean;
 }
@@ -24,6 +30,9 @@ const FALLBACK: ChartTheme = {
 	highlight: '#4f5bd5',
 	attention: '#e08a00',
 	slate: '#64748b',
+	pointer: 'rgb(15 27 42 / 0.05)',
+	shadow: '0 1px 2px rgb(15 27 42 / 0.12)',
+	scheme: 'light',
 	font: 'Inter Variable, system-ui, sans-serif',
 	animate: true
 };
@@ -42,6 +51,9 @@ export function readTheme(): ChartTheme {
 		highlight: v('--color-highlight-500', FALLBACK.highlight),
 		attention: v('--color-attention-500', FALLBACK.attention),
 		slate: v('--color-slate-chart', FALLBACK.slate),
+		pointer: v('--t-pointer', FALLBACK.pointer),
+		shadow: v('--t-shadow-pop', FALLBACK.shadow),
+		scheme: document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light',
 		font: v('--font-sans', FALLBACK.font),
 		animate: !window.matchMedia('(prefers-reduced-motion: reduce)').matches
 	};

@@ -13,8 +13,8 @@
 
 <span class="inline-flex min-w-0 items-center gap-2">
 	<span
-		class="size-2.5 shrink-0 rounded-full {color ? '' : 'bg-ink-soft'}"
-		style:background-color={color}
+		class="cat-dot size-2.5 shrink-0 rounded-full {color ? '' : 'bg-ink-soft'}"
+		style:--cat={color}
 		aria-hidden="true"
 	></span>
 	{#if slug}

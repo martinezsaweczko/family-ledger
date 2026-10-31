@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { untrack } from 'svelte';
 	import type { EChartsCoreOption } from 'echarts/core';
 	import type { EChartsType } from '#lib/dashboard/echarts.ts';
 	import { readTheme, type ChartTheme } from '#lib/dashboard/chart-theme.ts';
@@ -24,6 +25,28 @@
 	let host = $state<HTMLDivElement>();
 	let chart = $state.raw<EChartsType>();
 	let ready = $state(false);
+	/** Bumped whenever the effective theme changes, so the option is rebuilt with fresh token colours. */
+	let themeTick = $state(0);
+	let scheme = $state<string>();
+
+	$effect(() => {
+		const bump = () => themeTick++;
+		const mutations = new MutationObserver(bump);
+		mutations.observe(document.documentElement, {
+			attributes: true,
+			attributeFilter: ['data-theme', 'data-theme-pref']
+		});
+		// Covers System mode before/without the attribute being rewritten, and the reduced-motion flag.
+		const queries = [
+			matchMedia('(prefers-color-scheme: dark)'),
+			matchMedia('(prefers-reduced-motion: reduce)')
+		];
+		for (const q of queries) q.addEventListener('change', bump);
+		return () => {
+			mutations.disconnect();
+			for (const q of queries) q.removeEventListener('change', bump);
+		};
+	});
 
 	$effect(() => {
 		const el = host;
@@ -50,6 +73,7 @@
 	$effect(() => {
 		const c = chart;
 		if (!c) return;
+		void themeTick;
 		const theme = readTheme();
 		const option = build(theme);
 		c.off('click');
@@ -61,12 +85,14 @@
 		}
 		c.setOption(
 			{
-				animation: theme.animate,
+				// Re-theming must not replay the entrance animation.
+				animation: theme.animate && !untrack(() => ready),
 				textStyle: { fontFamily: theme.font, color: theme.inkSoft },
 				...option
 			},
 			true
 		);
+		scheme = theme.scheme;
 		ready = true;
 	});
 </script>
@@ -76,6 +102,7 @@
 	role="img"
 	aria-label={label}
 	data-chart-ready={ready ? 'true' : 'false'}
+	data-chart-scheme={scheme}
 	class="w-full overflow-hidden"
 	style:height="{height}px"
 ></div>

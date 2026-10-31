@@ -40,6 +40,8 @@ Installed in `.claude/skills/`. `DESIGN.md` is the source of truth: skills must 
 
 The design lives in two places only: `DESIGN.md` (rules) and the `@theme` block in `src/routes/layout.css` (tokens). To restyle, edit both, keep token names, and components follow. Never hardcode colours in components.
 
+**Colours and themes:** never hard-code a colour; every token needs both a light and a dark value (`--t-*` in `layout.css`, see DESIGN.md "Dark mode"), and category colours are drawn through `chartColor` / `.cat-dot`.
+
 ## CI/CD and release
 
 - `.github/workflows/docker.yml` is the entry pipeline (push to `main`, `v*` tags, pull requests): job `test` calls `ci.yml` (reusable, also manually runnable), then job `image` builds the image, smoke-tests it against a MySQL container (waits for `/` = 200, tables exist, container healthy) and only on push to `main`/`v*` logs in and pushes to GHCR (`ghcr.io/<owner>/<repo>`, tags branch/latest/semver/sha). PRs never push.

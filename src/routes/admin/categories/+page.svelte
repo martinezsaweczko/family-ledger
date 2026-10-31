@@ -100,8 +100,8 @@
 			<li class="card p-4">
 				<div class="flex flex-wrap items-center gap-3">
 					<span
-						class="size-6 shrink-0 rounded-full border border-line"
-						style:background-color={c.color}
+						class="cat-dot size-6 shrink-0 rounded-full border border-line"
+						style:--cat={c.color}
 						aria-hidden="true"
 					></span>
 					<p class="font-medium">{c.name}</p>
@@ -147,8 +147,8 @@
 			{#each archived as c (c.id)}
 				<li class="card flex flex-wrap items-center gap-3 p-4">
 					<span
-						class="size-6 shrink-0 rounded-full border border-line opacity-60"
-						style:background-color={c.color}
+						class="cat-dot size-6 shrink-0 rounded-full border border-line opacity-60"
+						style:--cat={c.color}
 						aria-hidden="true"
 					></span>
 					<p class="font-medium text-ink-soft">{c.name}</p>

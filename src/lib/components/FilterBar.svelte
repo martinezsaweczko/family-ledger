@@ -61,7 +61,7 @@
 				aria-current={state.preset === p.id ? 'true' : undefined}
 				class="inline-flex min-h-11 items-center rounded-full border px-3.5 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600 {state.preset ===
 				p.id
-					? 'border-primary-600 bg-primary-600 text-white'
+					? 'border-primary-600 bg-primary-600 text-on-primary'
 					: 'border-line bg-card text-ink hover:bg-paper'}">{p.label}</a
 			>
 		{/each}
@@ -146,8 +146,8 @@
 									class="rounded border-line text-primary-600 focus:ring-primary-500"
 								/>
 								<span
-									class="size-2.5 shrink-0 rounded-full"
-									style:background-color={c.color}
+									class="cat-dot size-2.5 shrink-0 rounded-full"
+									style:--cat={c.color}
 									aria-hidden="true"
 								></span>
 								<span class="text-sm">{c.name}</span>
