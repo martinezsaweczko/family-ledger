@@ -28,6 +28,7 @@ store raw rows in MySQL without double counting, categorise, and analyse income/
 - [x] T6 Dashboard UI (ECharts): KPIs, income vs expenses, categories, trends, contributions, drill-down, recurring
 - [x] T7 Attractive landing page
 - [x] T8 CI (MySQL service), Docker/compose release with auto-migrate, docs/CLAUDE.md
+- [x] T9 Dark mode (System/Light/Dark)
 
 ## Progress / evidence
 
@@ -73,6 +74,11 @@ store raw rows in MySQL without double counting, categorise, and analyse income/
   Evidence: podman build OK; prod stack run under a throwaway project on port 3999: GET / 200, GET /dashboard 200, 7 app tables + __drizzle_migrations
   created, runs as user node; everything torn down (dev db untouched). lint, check, 98 server tests, build, 12 e2e pass; drizzle-kit generate => no changes.
   NOT verified: the GitHub workflows themselves (YAML parses only), the Docker HEALTHCHECK status (podman builds OCI format and ignores it), GHCR push.
+
+- T9 Dark mode (delegated writer; commit fdde296): runtime CSS-variable tokens (light/dark/system) in layout.css, pre-paint script in app.html, ThemeToggle in nav,
+  Chart.svelte re-themes live, `chartColor` (OKLCH) for category colours, `.cat-dot` for dots. Route: delegated; trigger: 2+ non-trivial files.
+  Evidence: RED (missing modules) then GREEN for theme/color/tokens specs (contrast pairs both themes; light attention-500/600 failed AA/3:1 and were darkened);
+  lint, svelte-check, 167 server tests, build, 16 Playwright e2e pass; 2 screenshot rounds (8 pages x 2 themes x 2 widths); web-design-guidelines rules fetched (summary only), no findings.
 
 ## Remaining / future ideas
 
