@@ -185,7 +185,7 @@ export interface RulePreview {
 		concept: string;
 		amountCents: number;
 		categoryId: number | null;
-		categorySource: 'rule' | 'manual' | null;
+		categorySource: 'rule' | 'manual' | 'ai' | null;
 	}[];
 }
 

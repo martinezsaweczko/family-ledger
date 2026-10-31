@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import { resolve } from '$app/paths';
+	import { describeAiResult } from '#lib/format/ai-summary.ts';
 	import { formatDateTime } from '#lib/format/date.ts';
 	import type { PageProps } from './$types';
 
@@ -10,6 +11,9 @@
 	let names = $state<string[]>([]);
 	let dragging = $state(false);
 	let busy = $state(false);
+	let testing = $state(false);
+	const aiTest = $derived(form && 'aiTest' in form ? form.aiTest : null);
+	const results = $derived(form && 'results' in form ? form.results : []);
 
 	const sync = () => (names = Array.from(input?.files ?? [], (f) => f.name));
 	function drop(event: DragEvent) {
@@ -87,10 +91,10 @@
 </form>
 
 <div aria-live="polite" class="mt-6 space-y-4">
-	{#if form?.message}
+	{#if form && 'message' in form && form.message}
 		<p class="notice notice-warn">{form.message}</p>
 	{/if}
-	{#each form?.results ?? [] as result (result.filename)}
+	{#each results as result (result.filename)}
 		{#if result.ok}
 			<article class="card p-5" aria-label="Result for {result.filename}">
 				<div class="flex flex-wrap items-center justify-between gap-2">
@@ -108,6 +112,12 @@
 						</div>
 					{/each}
 				</dl>
+				{#if result.summary.ai.enabled && result.summary.ai.requested > 0}
+					<p class="mt-4 text-sm" data-testid="ai-summary">
+						<span class="pill bg-highlight-100 text-ink">AI</span>
+						{describeAiResult(result.summary.ai)}
+					</p>
+				{/if}
 				{#if result.uncategorised > 0}
 					<p class="mt-4 text-sm">
 						<a class="font-medium text-primary-700 underline" href={resolve('/admin/review')}>
@@ -124,6 +134,55 @@
 		{/if}
 	{/each}
 </div>
+
+<section class="mt-12" aria-labelledby="ai-status" data-testid="ai-status">
+	<h2 id="ai-status" class="text-xl font-semibold">AI categorisation</h2>
+	{#if data.ai.enabled}
+		<p class="mt-1 text-sm text-ink-soft">
+			<span class="pill pill-ok">Enabled</span>
+			Model <span class="font-medium text-ink">{data.ai.model}</span> via
+			<span class="font-medium text-ink">{data.ai.host}</span>. Uncategorised rows are sent as
+			cleaned merchant text only (no digits, IBANs or dates), after each import and from the review
+			page.
+		</p>
+		<p class="mt-2 text-sm text-ink-soft" data-testid="ai-last">
+			{data.ai.last
+				? `Last run ${formatDateTime(data.ai.last.at)}: ${data.ai.last.summary}`
+				: 'No run since the server started.'}
+		</p>
+		<form
+			method="POST"
+			action="?/testAi"
+			class="mt-3"
+			use:enhance={() => {
+				testing = true;
+				return async ({ update }) => {
+					await update({ reset: false });
+					testing = false;
+				};
+			}}
+		>
+			<button class="btn" disabled={testing} data-testid="ai-test">
+				{testing ? 'Testing…' : 'Test connection'}
+			</button>
+		</form>
+		{#if aiTest}
+			<p
+				class="notice mt-3 {aiTest.ok ? 'notice-ok' : 'notice-warn'}"
+				role="status"
+				data-testid="ai-test-result"
+			>
+				{aiTest.message}
+			</p>
+		{/if}
+	{:else}
+		<p class="mt-1 text-sm text-ink-soft" data-testid="ai-disabled">
+			<span class="pill">Disabled</span>
+			Set <code>AI_BASE_URL</code> (see the README) to let an OpenAI-compatible service suggest categories
+			for rows the rules cannot place.
+		</p>
+	{/if}
+</section>
 
 <section class="mt-12" aria-labelledby="supported">
 	<h2 id="supported" class="text-xl font-semibold">Supported formats</h2>

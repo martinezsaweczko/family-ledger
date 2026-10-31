@@ -14,6 +14,20 @@ export interface ReviewRow {
 	suggestedPattern: string;
 }
 
+export interface AiReviewRow {
+	id: number;
+	bookingDate: string;
+	concept: string;
+	amountCents: number;
+	categoryId: number;
+	categoryName: string;
+	categoryColor: string;
+	categoryIcon: string | null;
+	categorySlug: string;
+	aiConfidence: number | null;
+	suggestedPattern: string;
+}
+
 export interface ReviewPage {
 	rows: ReviewRow[];
 	total: number;
@@ -56,6 +70,37 @@ export async function listUncategorised(
 		total: n,
 		page,
 		pageSize
+	};
+}
+
+/** Rows the AI categorised that nobody has confirmed yet (newest first), for the review page. */
+export async function listAiCategorised(
+	opts: { limit?: number } = {},
+	db: Db = getDb()
+): Promise<{ rows: AiReviewRow[]; total: number }> {
+	const where = eq(statements.categorySource, 'ai');
+	const [{ n }] = await db.select({ n: count() }).from(statements).where(where);
+	const rows = await db
+		.select({
+			id: statements.id,
+			bookingDate: statements.bookingDate,
+			concept: statements.concept,
+			amountCents: statements.amountCents,
+			categoryId: categories.id,
+			categoryName: categories.name,
+			categoryColor: categories.color,
+			categoryIcon: categories.icon,
+			categorySlug: categories.slug,
+			aiConfidence: statements.aiConfidence
+		})
+		.from(statements)
+		.innerJoin(categories, eq(categories.id, statements.categoryId))
+		.where(where)
+		.orderBy(desc(statements.bookingDate), asc(statements.id))
+		.limit(Math.min(Math.max(opts.limit ?? 20, 1), 100));
+	return {
+		rows: rows.map((r) => ({ ...r, suggestedPattern: defaultPattern(r.concept) })),
+		total: n
 	};
 }
 
@@ -111,7 +156,12 @@ export async function assignCategory(
 		}
 		const [res] = await tx
 			.update(statements)
-			.set({ categoryId: input.categoryId, categorySource: 'manual' })
+			.set({
+				categoryId: input.categoryId,
+				categorySource: 'manual',
+				aiConfidence: null,
+				aiModel: null
+			})
 			.where(eq(statements.id, input.statementId));
 		if (res.affectedRows === 0) return fail({ _form: 'Statement not found.' });
 		let rule: AssignOutcome['rule'] = null;

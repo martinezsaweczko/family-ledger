@@ -1,5 +1,5 @@
 import { fail } from '@sveltejs/kit';
-import { changeCategory, clearOverride } from './overrides.ts';
+import { acceptAiCategory, changeCategory, clearOverride } from './overrides.ts';
 import { parseInteger } from './validate.ts';
 
 /**
@@ -20,6 +20,29 @@ export const overrideActions = {
 		const result = await changeCategory({
 			statementId,
 			categoryId,
+			rulePattern: createRule ? String(form.get('pattern') ?? '') : undefined
+		});
+		if (!result.ok) {
+			return fail(400, {
+				override: { statementId, error: Object.values(result.errors).join(' ') }
+			});
+		}
+		return {
+			override: {
+				statementId,
+				saved: true as const,
+				rule: result.value.rule,
+				alsoCategorised: result.value.alsoCategorised
+			}
+		};
+	},
+	acceptAi: async ({ request }: { request: Request }) => {
+		const form = await request.formData();
+		const statementId = parseInteger(form.get('statementId'));
+		if (statementId === null) return fail(400, { override: { error: 'Missing transaction.' } });
+		const createRule = form.get('createRule') === 'on';
+		const result = await acceptAiCategory({
+			statementId,
 			rulePattern: createRule ? String(form.get('pattern') ?? '') : undefined
 		});
 		if (!result.ok) {

@@ -18,6 +18,12 @@ services:
     environment:
       DATABASE_URL: mysql://hearth:${MYSQL_PASSWORD:?set MYSQL_PASSWORD in .env}@db:3306/hearth
       BODY_SIZE_LIMIT: ${BODY_SIZE_LIMIT:-25M}
+      # Optional AI categorisation (see .env.example); empty = disabled.
+      AI_BASE_URL: ${AI_BASE_URL:-}
+      AI_MODEL: ${AI_MODEL:-}
+      AI_API_KEY: ${AI_API_KEY:-}
+      AI_TIMEOUT_MS: ${AI_TIMEOUT_MS:-}
+      AI_MIN_CONFIDENCE: ${AI_MIN_CONFIDENCE:-}
       # Behind a reverse proxy, uncomment and set the public origin so form posts are accepted:
       # ORIGIN: https://hearth.example.lan
     ports:

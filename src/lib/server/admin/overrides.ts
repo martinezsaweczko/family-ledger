@@ -21,6 +21,28 @@ export function changeCategory(
 	return assignCategory(input, db);
 }
 
+/**
+ * One-click "Accept": locks an AI category in as the user's own (ai -> manual), so rules and
+ * later AI runs never touch it again. Optionally also creates a rule from the merchant.
+ */
+export async function acceptAiCategory(
+	input: { statementId: number; rulePattern?: string },
+	db: Db = getDb()
+): Promise<Result<OverrideOutcome>> {
+	const [row] = await db
+		.select({ categoryId: statements.categoryId, source: statements.categorySource })
+		.from(statements)
+		.where(eq(statements.id, input.statementId));
+	if (!row) return fail({ _form: 'Transaction not found.' });
+	if (row.source !== 'ai' || row.categoryId === null) {
+		return fail({ _form: 'This transaction has no AI category to accept.' });
+	}
+	return assignCategory(
+		{ statementId: input.statementId, categoryId: row.categoryId, rulePattern: input.rulePattern },
+		db
+	);
+}
+
 export interface ClearOutcome {
 	statementId: number;
 	/** What the rules decided for this row afterwards (null = still uncategorised). */

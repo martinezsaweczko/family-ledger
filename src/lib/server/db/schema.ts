@@ -137,7 +137,11 @@ export const statements = mysqlTable(
 			.notNull()
 			.references(() => importBatches.id),
 		categoryId: int('category_id').references(() => categories.id),
-		categorySource: mysqlEnum('category_source', ['rule', 'manual']),
+		/** Precedence: manual > rule > ai > uncategorised (NULL). */
+		categorySource: mysqlEnum('category_source', ['rule', 'manual', 'ai']),
+		/** Set only while category_source = 'ai': the model's confidence as a whole percent. */
+		aiConfidence: int('ai_confidence'),
+		aiModel: varchar('ai_model', { length: 80 }),
 		personId: int('person_id').references(() => people.id),
 		/** Free-text note, used by manual entries. */
 		note: text('note'),

@@ -2,13 +2,21 @@
 	import { enhance } from '$app/forms';
 	import { resolve } from '$app/paths';
 	import { SvelteURLSearchParams } from 'svelte/reactivity';
+	import AiBadge from '#lib/components/AiBadge.svelte';
+	import CategoryChip from '#lib/components/CategoryChip.svelte';
 	import CategoryIcon from '#lib/components/CategoryIcon.svelte';
+	import RowCategoryEditor from '#lib/components/RowCategoryEditor.svelte';
+	import { describeAiResult } from '#lib/format/ai-summary.ts';
 	import Pager from '#lib/components/Pager.svelte';
 	import { formatDate } from '#lib/format/date.ts';
 	import { formatMoney } from '#lib/format/money.ts';
 	import type { PageProps } from './$types';
 
 	let { data, form }: PageProps = $props();
+
+	let aiBusy = $state(false);
+	let openAiId = $state<number | null>(null);
+	const aiRun = $derived(form && 'aiRun' in form ? form.aiRun : null);
 
 	// Which rows have "also create a rule" ticked (default off).
 	let withRule = $state<Record<number, boolean>>({});
@@ -42,6 +50,16 @@
 </p>
 
 <div aria-live="polite" class="mt-4 space-y-2">
+	{#if aiRun}
+		<p
+			class="notice {aiRun.enabled && aiRun.categorised > 0 ? 'notice-ok' : 'notice-warn'}"
+			role="status"
+			data-testid="ai-run-result"
+		>
+			{describeAiResult(aiRun)}
+			{#if aiRun.skipped}{aiRun.skipped} left for you to review.{/if}
+		</p>
+	{/if}
 	{#if form && 'saved' in form && form.saved}
 		<p class="notice notice-ok" role="status">
 			Category saved.
@@ -97,7 +115,30 @@
 {/if}
 
 <section class="mt-10" aria-labelledby="queue">
-	<h2 id="queue" class="text-xl font-semibold">Queue</h2>
+	<div class="flex flex-wrap items-center justify-between gap-3">
+		<h2 id="queue" class="text-xl font-semibold">Queue</h2>
+		{#if data.ai.enabled}
+			<form
+				method="POST"
+				action="?/categoriseAi"
+				use:enhance={() => {
+					aiBusy = true;
+					return async ({ update }) => {
+						await update();
+						aiBusy = false;
+					};
+				}}
+			>
+				<button class="btn" disabled={aiBusy || data.queue.total === 0} data-testid="ai-categorise">
+					{aiBusy ? 'Asking the AI…' : 'Categorise with AI'}
+				</button>
+			</form>
+		{:else}
+			<p class="text-sm text-ink-soft" data-testid="ai-disabled">
+				AI categorisation is off. Set <code>AI_BASE_URL</code> to enable it.
+			</p>
+		{/if}
+	</div>
 	<form method="GET" class="mt-3 flex gap-2" role="search">
 		<label class="sr-only" for="q">Search concepts</label>
 		<input
@@ -181,3 +222,69 @@
 		</div>
 	{/if}
 </section>
+
+{#if data.aiRows.total > 0}
+	<section class="mt-10" aria-labelledby="ai-rows" data-testid="ai-section">
+		<h2 id="ai-rows" class="text-xl font-semibold">Categorised by AI ({data.aiRows.total})</h2>
+		<p class="mt-1 max-w-2xl text-sm text-ink-soft">
+			These categories are suggestions. Accept one to lock it in, or change it. Rules override a
+			suggestion; your own choice always wins.
+		</p>
+		<ul class="mt-3 space-y-3">
+			{#each data.aiRows.rows as row (row.id)}
+				<li class="card p-4" data-testid="ai-row">
+					<div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+						<p class="font-medium break-all">{row.concept}</p>
+						<p class="num shrink-0 font-semibold {row.amountCents < 0 ? '' : 'text-primary-700'}">
+							{row.amountCents < 0 ? 'Out' : 'In'}
+							{formatMoney(Math.abs(row.amountCents))}
+						</p>
+					</div>
+					<p class="mt-1 text-xs text-ink-soft">{formatDate(row.bookingDate)}</p>
+					<div class="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1">
+						<CategoryChip
+							name={row.categoryName}
+							color={row.categoryColor}
+							slug={null}
+							icon={row.categoryIcon}
+						/>
+						<AiBadge
+							statementId={row.id}
+							confidence={row.aiConfidence}
+							editable
+							suggestedPattern={row.suggestedPattern}
+						/>
+						<button
+							type="button"
+							class="inline-flex min-h-8 cursor-pointer items-center rounded text-xs text-primary-700 underline decoration-line underline-offset-4 hover:decoration-primary-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600"
+							aria-expanded={openAiId === row.id}
+							aria-controls="edit-ai-{row.id}"
+							onclick={() => (openAiId = openAiId === row.id ? null : row.id)}
+						>
+							Change category
+						</button>
+					</div>
+					{#if openAiId === row.id}
+						<div class="mt-3">
+							<RowCategoryEditor
+								id="edit-ai-{row.id}"
+								statementId={row.id}
+								concept={row.concept}
+								categoryId={row.categoryId}
+								categories={data.categories}
+								suggestedPattern={row.suggestedPattern}
+								canClear={false}
+								onclose={() => (openAiId = null)}
+							/>
+						</div>
+					{/if}
+				</li>
+			{/each}
+		</ul>
+		{#if data.aiRows.total > data.aiRows.rows.length}
+			<p class="mt-3 text-sm text-ink-soft">
+				Showing the newest {data.aiRows.rows.length}. Accept or change some to see the rest.
+			</p>
+		{/if}
+	</section>
+{/if}

@@ -101,6 +101,32 @@ there; imported rows never.
   you spent as manual spending on top of that counts it twice; put the withdrawal in "Internal
   transfer" or leave it as it is. Hearth does not decide this for you.
 
+## AI categorisation (optional)
+
+Rows the rules cannot place can be categorised by your own internal AI service. It must speak the
+OpenAI chat-completions protocol: Hearth sends `POST <AI_BASE_URL>/v1/chat/completions` with
+`{"messages":[...],"model":"haiku","stream":false,"temperature":0}` and reads
+`choices[0].message.content`. Set `AI_BASE_URL` (see `.env.example`); when it is unset the feature is
+simply off and nothing is ever sent anywhere.
+
+- **When**: automatically after each import (only the new, still-uncategorised rows, at most 200 rows
+  and about 60 s per import; an AI failure never fails the import) and on demand with **Categorise with
+  AI** on Admin > Review (same bounds per click).
+- **What is sent**: only the cleaned merchant text (no digits, no IBAN-like tokens, no sender names of
+  incoming transfers), the direction (in/out) and the amount rounded to whole euros, plus the list of
+  your active categories. Never the IBAN, balance, account, dates or the raw bank line. Identical
+  merchants are asked once, up to 20 per request.
+- **How it is applied**: the model answers with a category slug and a confidence. Answers below
+  `AI_MIN_CONFIDENCE`, unknown categories and inconsistent ones (money out as income; money in as an
+  expense unless confidence is at least 0.8, as a refund) are ignored and the row stays uncategorised.
+- **Precedence**: manual > rule > ai > uncategorised. The AI never overwrites a manual or rule category;
+  re-applying the rules replaces an AI category only when a rule matches, and leaves other AI rows alone.
+- **Reviewing**: AI rows carry an "AI · 82 %" badge in the transaction lists and are listed under
+  **Categorised by AI** on the review page. **Accept** locks the category as your own (optionally also
+  creating a rule); **Change category** overrides it (also manual).
+- **Admin**: Admin > Imports shows whether AI is enabled (model and host only), the last run, and a
+  **Test connection** button that sends one synthetic prompt.
+
 ## Dedup guarantee
 
 Every row gets `dedup_hash = sha256(account | booking date | value date | concept | amount | balance after)`
@@ -114,6 +140,11 @@ because the balance after each differs. The original source row is kept verbatim
 | ------------------------- | ------------------- | --------------------------------------------- | --------------------------------------------------------------- |
 | `DATABASE_URL`            | app                 | `mysql://hearth:hearth@127.0.0.1:3306/hearth` | MySQL connection (required)                                     |
 | `BODY_SIZE_LIMIT`         | app                 | `25M` in the image                            | Max upload size (adapter-node default is only 512K)             |
+| `AI_BASE_URL`             | app                 | unset (AI off), e.g. `https://ai.example.lan` | Base URL of an OpenAI-compatible chat-completions service       |
+| `AI_MODEL`                | app                 | `haiku`                                       | Model name sent to that service                                 |
+| `AI_API_KEY`              | app                 | unset                                         | Optional bearer token (`Authorization: Bearer ...`)             |
+| `AI_TIMEOUT_MS`           | app                 | `30000`                                       | Per-request timeout                                             |
+| `AI_MIN_CONFIDENCE`       | app                 | `0.6`                                         | Answers below this confidence (0-1) are ignored                 |
 | `PORT` / `HOST`           | app                 | `3000` / `0.0.0.0`                            | Listen address inside the container                             |
 | `ORIGIN`                  | app                 | unset                                         | Set the public origin when behind a reverse proxy               |
 | `MIGRATIONS_DIR`          | app                 | `./drizzle` from the working directory        | Override the migrations folder                                  |

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { formatMoney } from '#lib/format/money.ts';
 	import { formatDate } from '#lib/format/date.ts';
+	import AiBadge from './AiBadge.svelte';
 	import CategoryChip from './CategoryChip.svelte';
 	import RowCategoryEditor, { type EditorCategory } from './RowCategoryEditor.svelte';
 
@@ -14,7 +15,8 @@
 		categoryColor: string | null;
 		categoryIcon: string | null;
 		categoryId?: number | null;
-		categorySource?: 'rule' | 'manual' | null;
+		categorySource?: 'rule' | 'manual' | 'ai' | null;
+		aiConfidence?: number | null;
 		isManual?: boolean;
 		suggestedPattern?: string;
 		categorySlug: string | null;
@@ -74,7 +76,7 @@
 								{search}
 							/>
 						</p>
-						{#if r.personName || r.isManual || (r.categorySource === 'manual' && !r.isManual)}
+						{#if r.personName || r.isManual || r.categorySource === 'manual' || r.categorySource === 'ai'}
 							<p class="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-ink-soft">
 								{#if r.isManual}<span class="pill" data-testid="badge-manual">manual</span>
 								{:else if r.categorySource === 'manual'}<span
@@ -83,6 +85,12 @@
 										title="You chose this category; imports and rules will not change it"
 										>edited</span
 									>{/if}
+								{#if r.categorySource === 'ai' && !r.isManual}<AiBadge
+										statementId={r.id}
+										confidence={r.aiConfidence ?? null}
+										editable={!!categories}
+										suggestedPattern={r.suggestedPattern ?? ''}
+									/>{/if}
 								{#if r.personName}<span>{r.personName}</span>{/if}
 							</p>
 						{/if}

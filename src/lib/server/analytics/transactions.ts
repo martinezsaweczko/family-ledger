@@ -20,7 +20,9 @@ export interface TransactionRow {
 	categoryColor: string | null;
 	categoryIcon: string | null;
 	/** 'manual' = the user chose the category (survives re-imports); 'rule' = rules decided. */
-	categorySource: 'rule' | 'manual' | null;
+	categorySource: 'rule' | 'manual' | 'ai' | null;
+	/** Whole percent, only for category_source = 'ai'. */
+	aiConfidence: number | null;
 	/** True for rows entered by hand in /admin/manual (not from a bank file). */
 	isManual: boolean;
 	/** Default pattern for "also create a rule from this". */
@@ -74,6 +76,7 @@ export async function transactions(
 			categoryColor: categories.color,
 			categoryIcon: categories.icon,
 			categorySource: statements.categorySource,
+			aiConfidence: statements.aiConfidence,
 			isManual: sql<number>`(${statements.importerId} = 'manual')`,
 			personName: people.name
 		})

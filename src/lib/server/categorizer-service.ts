@@ -20,13 +20,18 @@ export interface ApplyResult {
 const CHUNK = 500;
 
 /**
- * Applies rules to the statements selected by `where`. Rows with
- * category_source = 'manual' are never touched, whatever `where` says.
+ * Applies rules to the statements selected by `where`. Precedence: manual > rule > ai >
+ * uncategorised. Rows with category_source = 'manual' are never touched, whatever `where` says.
+ * A matching rule replaces an 'ai' category; an 'ai' row no rule matches is kept as it is.
  * Rows previously set by a rule that no longer match are reset to uncategorised.
  */
 export async function applyRules(db: DbLike, where: SQL | undefined): Promise<ApplyResult> {
 	const rules = await loadRules(db);
-	const notManual = or(isNull(statements.categorySource), eq(statements.categorySource, 'rule'));
+	const notManual = or(
+		isNull(statements.categorySource),
+		eq(statements.categorySource, 'rule'),
+		eq(statements.categorySource, 'ai')
+	);
 	const rows = await db
 		.select({
 			id: statements.id,
@@ -66,7 +71,13 @@ export async function applyRules(db: DbLike, where: SQL | undefined): Promise<Ap
 		for (let i = 0; i < g.ids.length; i += CHUNK) {
 			await db
 				.update(statements)
-				.set({ categoryId: g.categoryId, personId: g.personId, categorySource: 'rule' })
+				.set({
+					categoryId: g.categoryId,
+					personId: g.personId,
+					categorySource: 'rule',
+					aiConfidence: null,
+					aiModel: null
+				})
 				.where(and(notManual, inArray(statements.id, g.ids.slice(i, i + CHUNK))));
 		}
 	}

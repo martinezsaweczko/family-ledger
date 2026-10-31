@@ -2,6 +2,12 @@ import { createHash } from 'node:crypto';
 import { eq, inArray, sql } from 'drizzle-orm';
 import { getDb, type Db } from '../db/index.ts';
 import { accounts, importBatches, statements } from '../db/schema.ts';
+import {
+	categorizeWithAi,
+	AI_DISABLED,
+	type AiResult,
+	type AiRunOptions
+} from '../ai/categorize-ai.ts';
 import { categorizeNewRows } from '../categorizer-service.ts';
 import { computeDedupHashes } from './dedup.ts';
 import { detectImporter, getImporter } from './registry.ts';
@@ -16,6 +22,8 @@ export interface ImportSummary {
 	rowsInserted: number;
 	rowsUpdated: number;
 	rowsUnchanged: number;
+	/** Outcome of the AI pass over this file's new, still-uncategorised rows. */
+	ai: AiResult;
 }
 
 export class ImportError extends Error {}
@@ -46,7 +54,13 @@ function chunks<T>(items: T[], size: number): T[][] {
  * double counts: rows are upserted by dedup_hash and manual categories survive.
  */
 export async function importFile(
-	opts: { buffer: Buffer; filename: string; importerId?: string },
+	opts: {
+		buffer: Buffer;
+		filename: string;
+		importerId?: string;
+		/** Overrides for the AI pass (config, fetch); tests only. */
+		ai?: Pick<AiRunOptions, 'config' | 'fetch' | 'maxRows' | 'maxTotalMs'>;
+	},
 	db: Db = getDb()
 ): Promise<ImportSummary> {
 	const importer = opts.importerId
@@ -67,7 +81,8 @@ export async function importFile(
 	}
 	const fileSha256 = createHash('sha256').update(opts.buffer).digest('hex');
 
-	return db.transaction(async (tx) => {
+	const newHashes: string[] = [];
+	const summary = await db.transaction(async (tx) => {
 		await tx
 			.insert(accounts)
 			.values({
@@ -110,8 +125,10 @@ export async function importFile(
 		let updated = 0;
 		for (const [hash, row] of unique) {
 			const prev = existing.get(hash);
-			if (prev === undefined) inserted++;
-			else if (prev !== canonical(row.raw)) updated++;
+			if (prev === undefined) {
+				inserted++;
+				newHashes.push(hash);
+			} else if (prev !== canonical(row.raw)) updated++;
 		}
 
 		for (const part of chunks([...unique], CHUNK)) {
@@ -158,7 +175,24 @@ export async function importFile(
 			rowsTotal: parsed.rows.length,
 			rowsInserted: inserted,
 			rowsUpdated: updated,
-			rowsUnchanged
+			rowsUnchanged,
+			ai: AI_DISABLED
 		};
 	});
+
+	// AI runs after the commit, bounded, and can never fail the import.
+	try {
+		const ids: number[] = [];
+		for (const part of chunks(newHashes, CHUNK)) {
+			const found = await db
+				.select({ id: statements.id })
+				.from(statements)
+				.where(inArray(statements.dedupHash, part));
+			ids.push(...found.map((f) => f.id));
+		}
+		summary.ai = await categorizeWithAi({ ...opts.ai, ids, db });
+	} catch (err) {
+		console.warn(`[ai] skipped after import: ${(err as Error).message}`);
+	}
+	return summary;
 }

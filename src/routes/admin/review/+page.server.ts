@@ -1,8 +1,12 @@
 import { fail } from '@sveltejs/kit';
 import { activeCategories } from '#lib/server/admin/categories.ts';
+import { overrideActions } from '#lib/server/admin/override-actions.ts';
+import { aiHost, getAiConfig } from '#lib/server/ai/config.ts';
+import { categorizeWithAi } from '#lib/server/ai/categorize-ai.ts';
 import {
 	applySuggestion,
 	assignCategory,
+	listAiCategorised,
 	listUncategorised,
 	suggestedRules
 } from '#lib/server/admin/review.ts';
@@ -14,15 +18,21 @@ const PAGE_SIZE = 20;
 export const load: PageServerLoad = async ({ url }) => {
 	const search = url.searchParams.get('q')?.trim() ?? '';
 	const page = Math.max(parseInteger(url.searchParams.get('page') ?? '1') ?? 1, 1);
-	const [queue, categories, suggestions] = await Promise.all([
+	const [queue, categories, suggestions, aiRows] = await Promise.all([
 		listUncategorised({ page, pageSize: PAGE_SIZE, search }),
 		activeCategories(),
-		suggestedRules(8)
+		suggestedRules(8),
+		listAiCategorised({ limit: 20 })
 	]);
-	return { queue, search, categories, suggestions };
+	const cfg = getAiConfig();
+	const ai = cfg ? { enabled: true, model: cfg.model, host: aiHost(cfg) } : { enabled: false };
+	return { queue, search, categories, suggestions, aiRows, ai };
 };
 
 export const actions: Actions = {
+	...overrideActions,
+	/** Asks the AI about the current uncategorised rows, bounded like the post-import run. */
+	categoriseAi: async () => ({ aiRun: await categorizeWithAi() }),
 	assign: async ({ request }) => {
 		const form = await request.formData();
 		const statementId = parseInteger(form.get('statementId'));
