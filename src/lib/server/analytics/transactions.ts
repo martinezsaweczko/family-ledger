@@ -1,6 +1,7 @@
 import { and, asc, count, desc, eq, min, max, isNull, sql } from 'drizzle-orm';
 import { getDb, type Db } from '../db/index.ts';
 import { categories, people, statements } from '../db/schema.ts';
+import { cleanMerchant } from '../importers/merchant.ts';
 import { filterWhere, type AnalyticsFilter } from './filter.ts';
 
 export type TransactionSort = 'date_desc' | 'date_asc' | 'amount_desc' | 'amount_asc';
@@ -21,6 +22,8 @@ export interface TransactionRow {
 	categorySource: 'rule' | 'manual' | null;
 	/** True for rows entered by hand in /admin/manual (not from a bank file). */
 	isManual: boolean;
+	/** Default pattern for "also create a rule from this". */
+	suggestedPattern: string;
 	personName: string | null;
 }
 
@@ -81,7 +84,11 @@ export async function transactions(
 		.limit(pageSize)
 		.offset((page - 1) * pageSize);
 	return {
-		rows: rows.map((r) => ({ ...r, isManual: Boolean(Number(r.isManual)) })),
+		rows: rows.map((r) => ({
+			...r,
+			isManual: Boolean(Number(r.isManual)),
+			suggestedPattern: cleanMerchant(r.concept) || r.concept.trim()
+		})),
 		total: n,
 		page,
 		pageSize

@@ -1,5 +1,6 @@
 import { transactions, type TransactionSort } from '#lib/server/analytics/index.ts';
-import type { PageServerLoad } from './$types';
+import { overrideActions } from '#lib/server/admin/override-actions.ts';
+import type { Actions, PageServerLoad } from './$types';
 import { dashboardContext, errorMessage } from '../context.server.ts';
 
 const SORTS: TransactionSort[] = ['date_desc', 'date_asc', 'amount_desc', 'amount_asc'];
@@ -21,3 +22,6 @@ export const load: PageServerLoad = async ({ url }) => {
 		return { ...base, result: null, failed: errorMessage(e) };
 	}
 };
+
+/** Change category / remove my change; posted to the current URL so filters survive. */
+export const actions: Actions = overrideActions;

@@ -4,6 +4,7 @@
 	import Chart from '#lib/components/Chart.svelte';
 	import FilterBar from '#lib/components/FilterBar.svelte';
 	import KpiCard from '#lib/components/KpiCard.svelte';
+	import OverrideNotice from '#lib/components/OverrideNotice.svelte';
 	import Pager from '#lib/components/Pager.svelte';
 	import TransactionTable from '#lib/components/TransactionTable.svelte';
 	import { hbarOption, stackedOption, trendTable } from '#lib/dashboard/charts.ts';
@@ -12,9 +13,10 @@
 	import { formatMoney } from '#lib/format/money.ts';
 	import type { PageProps } from './$types';
 
-	let { data }: PageProps = $props();
+	let { data, form }: PageProps = $props();
 
 	// The category picker does not apply here: the page is already one category.
+	const categories = $derived(data.categories);
 	const state = $derived({ ...data.state, categoryIds: [] });
 	const filterSearch = $derived(buildSearch(state));
 	const cat = $derived(data.category);
@@ -166,7 +168,9 @@
 						</div>
 						<button class="btn" type="submit">Search</button>
 					</form>
+					<OverrideNotice {form} />
 					<TransactionTable
+						{categories}
 						rows={d.rows.rows}
 						sort={data.sort}
 						sortHref={(s) => href({ ...(data.q ? { q: data.q } : {}), sort: s })}

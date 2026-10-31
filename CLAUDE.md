@@ -66,6 +66,8 @@ The design lives in two places only: `DESIGN.md` (rules) and the `@theme` block 
 
 - Category icons: `categories.icon` stores a key of the curated registry in `src/lib/icons/registry.ts` (hand-written Lucide-style inline SVG, no icon dependency). `CategoryIcon.svelte` draws it in the category colour (`.cat-ink`/`.cat-badge`, lifted in dark mode like `.cat-dot`); decorative (aria-hidden) unless given a `label`. The admin picker (`IconPicker.svelte`) is validated server-side against the registry. Adding an icon = one entry in `ICONS` (+ `DEFAULT_ICON_BY_SLUG` for a seeded slug). The utilities category is named "Supplies" (slug `utilities`); migration `0002` renames the old "Suministros" default only if still unedited.
 
+- Per-row category override: `admin/overrides.ts` (`changeCategory` reuses `assignCategory`; `clearOverride` hands the row back to rules), shared form actions in `admin/override-actions.ts` re-exported as `actions` by `/dashboard/transactions` and `/dashboard/category/[slug]`; `RowCategoryEditor.svelte` posts to the current URL + `&/name` so the query string survives (a bare `?/name` would drop it). `category_source='manual'` rows are never touched by imports, rules or `recategorizeAll` (integration-tested).
+
 ## Gotchas
 
 - `engine-strict=true`; Node 24 (see `.nvmrc`).

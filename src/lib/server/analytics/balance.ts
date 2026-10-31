@@ -62,6 +62,7 @@ export interface CategoryOption {
 	name: string;
 	color: string;
 	icon: string | null;
+	isActive: boolean;
 	kind: 'expense' | 'income' | 'transfer' | 'ignore';
 }
 
@@ -74,6 +75,7 @@ export async function listCategories(db: Db = getDb()): Promise<CategoryOption[]
 			name: categories.name,
 			color: categories.color,
 			icon: categories.icon,
+			isActive: categories.isActive,
 			kind: categories.kind
 		})
 		.from(categories)

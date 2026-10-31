@@ -1,12 +1,14 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
 	import FilterBar from '#lib/components/FilterBar.svelte';
+	import OverrideNotice from '#lib/components/OverrideNotice.svelte';
 	import Pager from '#lib/components/Pager.svelte';
 	import TransactionTable from '#lib/components/TransactionTable.svelte';
 	import { buildSearch } from '#lib/dashboard/filters.ts';
 	import type { PageProps } from './$types';
 
-	let { data }: PageProps = $props();
+	let { data, form }: PageProps = $props();
+	const categories = $derived(data.categories);
 	const state = $derived(data.state);
 	const result = $derived(data.result);
 	const filterSearch = $derived(buildSearch(state));
@@ -73,10 +75,13 @@
 				<button class="btn" type="submit">Search</button>
 			</form>
 
+			<OverrideNotice {form} />
+
 			{#if data.failed}
 				<div class="notice notice-warn" role="alert">{data.failed}</div>
 			{:else if result}
 				<TransactionTable
+					{categories}
 					rows={result.rows}
 					sort={data.sort}
 					sortHref={(s) => href({ ...(data.q ? { q: data.q } : {}), sort: s })}

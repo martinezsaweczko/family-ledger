@@ -2,6 +2,7 @@
 	import { formatMoney } from '#lib/format/money.ts';
 	import { formatDay } from '#lib/dashboard/insights.ts';
 	import CategoryChip from './CategoryChip.svelte';
+	import RowCategoryEditor, { type EditorCategory } from './RowCategoryEditor.svelte';
 
 	export interface Row {
 		id: number;
@@ -12,6 +13,10 @@
 		categoryName: string | null;
 		categoryColor: string | null;
 		categoryIcon: string | null;
+		categoryId?: number | null;
+		categorySource?: 'rule' | 'manual' | null;
+		isManual?: boolean;
+		suggestedPattern?: string;
 		categorySlug: string | null;
 		personName: string | null;
 	}
@@ -22,8 +27,12 @@
 		sortHref: (sort: string) => string;
 		/** Query string appended to category links. */
 		search?: string;
+		/** When set, every row gets a "Change category" control (posts to the page's overrideActions). */
+		categories?: EditorCategory[];
 	}
-	let { rows, sort, sortHref, search = '' }: Props = $props();
+	let { rows, sort, sortHref, search = '', categories }: Props = $props();
+
+	let openId = $state<number | null>(null);
 
 	const dateNext = $derived(sort === 'date_desc' ? 'date_asc' : 'date_desc');
 	const amountNext = $derived(sort === 'amount_desc' ? 'amount_asc' : 'amount_desc');
@@ -51,10 +60,10 @@
 		<tbody class="divide-y divide-line">
 			{#each rows as r (r.id)}
 				<tr>
-					<td class="num py-2.5 pr-3 align-top whitespace-nowrap text-ink-soft">
+					<td class="num py-2.5 pr-3 align-top text-ink-soft sm:whitespace-nowrap">
 						{formatDay(r.bookingDate)}
 					</td>
-					<td class="max-w-0 min-w-40 py-2.5 pr-3 align-top">
+					<td class="max-w-0 min-w-28 py-2.5 pr-3 align-top">
 						<p class="truncate" title={r.concept}>{r.concept}</p>
 						<p class="mt-1 md:hidden">
 							<CategoryChip
@@ -65,7 +74,30 @@
 								{search}
 							/>
 						</p>
-						{#if r.personName}<p class="text-xs text-ink-soft">{r.personName}</p>{/if}
+						{#if r.personName || r.isManual || (r.categorySource === 'manual' && !r.isManual)}
+							<p class="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-ink-soft">
+								{#if r.isManual}<span class="pill" data-testid="badge-manual">manual</span>
+								{:else if r.categorySource === 'manual'}<span
+										class="pill pill-ok"
+										data-testid="badge-edited"
+										title="You chose this category; imports and rules will not change it"
+										>edited</span
+									>{/if}
+								{#if r.personName}<span>{r.personName}</span>{/if}
+							</p>
+						{/if}
+						{#if categories}
+							<button
+								type="button"
+								class="mt-1 inline-flex min-h-8 cursor-pointer items-center rounded text-xs text-primary-700 underline decoration-line underline-offset-4 hover:decoration-primary-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600"
+								aria-expanded={openId === r.id}
+								aria-controls="edit-{r.id}"
+								aria-label="Change category for {r.concept}"
+								onclick={() => (openId = openId === r.id ? null : r.id)}
+							>
+								Change category
+							</button>
+						{/if}
 					</td>
 					<td class="hidden py-2.5 pr-3 align-top md:table-cell">
 						<CategoryChip
@@ -89,6 +121,22 @@
 						{r.balanceCents === null ? '–' : formatMoney(r.balanceCents)}
 					</td>
 				</tr>
+				{#if categories && openId === r.id}
+					<tr class="border-t-0">
+						<td colspan="5" class="pb-3">
+							<RowCategoryEditor
+								id="edit-{r.id}"
+								statementId={r.id}
+								concept={r.concept}
+								categoryId={r.categoryId ?? null}
+								{categories}
+								suggestedPattern={r.suggestedPattern ?? r.concept}
+								canClear={r.categorySource === 'manual' && !r.isManual}
+								onclose={() => (openId = null)}
+							/>
+						</td>
+					</tr>
+				{/if}
 			{:else}
 				<tr><td colspan="5" class="py-8 text-center text-ink-soft">No transactions match.</td></tr>
 			{/each}

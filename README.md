@@ -63,7 +63,11 @@ flagged as transfer/ignore and are excluded from totals unless the dashboard "in
 option is on). Rules (**Admin > Rules**) assign a category by matching the concept text with
 `contains` or `regex`, with a priority, a direction (in/out) and an active flag. Rules run on newly
 imported rows that have no category yet. A category you set by hand is never overwritten by rules or
-re-imports. Each category has an icon (picked from a curated set in **Admin > Categories**) shown
+re-imports. Every transaction row on the dashboard (Transactions and category pages) has a
+**Change category** control: pick another category, optionally also create a rule from it, or
+**Remove my change** to let the rules decide again. Changed rows show an "edited" badge and keep
+their category through re-imports, overlapping imports and re-applying rules; amounts and dates of
+imported rows can never be edited. Each category has an icon (picked from a curated set in **Admin > Categories**) shown
 next to its name everywhere. Salary transfers can be attributed to a person, which feeds the contributions chart.
 
 ## Dedup guarantee
