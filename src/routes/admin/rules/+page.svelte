@@ -1,5 +1,7 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
+	import { resolve } from '$app/paths';
+	import { tick } from 'svelte';
 	import { formatMoney } from '#lib/format/money.ts';
 	import type { PageProps } from './$types';
 
@@ -9,6 +11,27 @@
 		form && 'errors' in form && form.errors && form.action === action && form.id === id
 			? (form.errors as Record<string, string>)
 			: {};
+	type PlanRow = {
+		rule: {
+			pattern: string;
+			matchType: string;
+			direction: string;
+			categorySlug: string;
+			person: string | null;
+			isActive: boolean;
+		};
+		differences?: string[];
+	};
+	const preview = $derived(form && 'importPreview' in form ? form.importPreview : null);
+	const importResult = $derived(form && 'importResult' in form ? form.importResult : null);
+	const importError = $derived(form && 'importError' in form ? form.importError : null);
+	const LIST_CAP = 100;
+	/** After the preview/result renders, move focus to its heading so the change is announced and in view. */
+	const focusHeading = (id: string) => () => async (opts: { update: () => Promise<void> }) => {
+		await opts.update();
+		await tick();
+		document.getElementById(id)?.focus();
+	};
 	const valuesFor = (action: string, id: number | null): Record<string, string> =>
 		form && 'values' in form && form.action === action && form.id === id ? (form.values ?? {}) : {};
 </script>
@@ -190,7 +213,255 @@
 			<button class="btn btn-primary">Re-apply rules to all non-manual rows</button>
 		</form>
 	</div>
+	<div class="card p-5 lg:col-span-2" id="import-export">
+		<h2 class="text-lg font-semibold">Import / export</h2>
+		<p class="mt-1 max-w-3xl text-sm text-ink-soft">
+			Back up your rules or share them with another install. The file holds rules and their
+			categories only, never any transactions, amounts or account data.
+		</p>
+		<div class="mt-4 grid gap-6 md:grid-cols-2">
+			<form
+				method="GET"
+				action={resolve('/admin/rules/export')}
+				data-sveltekit-reload
+				class="space-y-3"
+			>
+				<h3 class="text-sm font-semibold">Export</h3>
+				<label class="flex min-h-11 items-center gap-2 text-sm">
+					<input
+						type="checkbox"
+						name="active"
+						value="1"
+						class="size-5 rounded border-line text-primary-600 focus:ring-primary-500"
+					/>
+					Only active rules
+				</label>
+				<label class="flex min-h-11 items-center gap-2 text-sm">
+					<input
+						type="checkbox"
+						name="categories"
+						value="all"
+						class="size-5 rounded border-line text-primary-600 focus:ring-primary-500"
+					/>
+					Include every category, not just those the rules use
+				</label>
+				<button class="btn">Download rules (JSON)</button>
+			</form>
+			<form
+				method="POST"
+				action="?/previewImport"
+				enctype="multipart/form-data"
+				use:enhance={focusHeading('import-preview')}
+				class="space-y-3"
+			>
+				<h3 class="text-sm font-semibold">Import</h3>
+				<div>
+					<label class="label" for="import-file">Rules file (JSON, up to 2 MB)</label>
+					<input
+						id="import-file"
+						name="file"
+						type="file"
+						accept="application/json,.json"
+						required
+						class="field file:mr-3 file:cursor-pointer file:rounded-md file:border-0 file:bg-paper file:px-3 file:py-2 file:text-sm file:font-medium file:text-ink"
+					/>
+					<p class="hint">You see a preview first; nothing is written until you confirm.</p>
+				</div>
+				<button class="btn btn-primary">Preview import</button>
+			</form>
+		</div>
+		{#if importError}
+			<p class="notice notice-warn mt-4" role="alert" data-testid="import-error">{importError}</p>
+		{/if}
+	</div>
 </section>
+
+{#snippet planList(
+	title: string,
+	id: string,
+	items: PlanRow[],
+	opts: { open?: boolean; note?: string }
+)}
+	{#if items.length}
+		<details class="rounded-lg border border-line" open={opts.open} data-testid="import-{id}">
+			<summary class="flex min-h-11 cursor-pointer items-center gap-2 px-3 text-sm font-medium">
+				{title}
+				<span class="pill num">{items.length}</span>
+			</summary>
+			{#if opts.note}<p class="hint px-3">{opts.note}</p>{/if}
+			<ul class="divide-y divide-line px-3 pb-1 text-sm">
+				{#each items.slice(0, LIST_CAP) as item (item.rule.pattern + item.rule.matchType)}
+					<li class="flex flex-wrap items-center gap-x-2 gap-y-1 py-2">
+						<span class="font-mono font-medium break-all">{item.rule.pattern}</span>
+						<span class="pill">{item.rule.matchType}</span>
+						{#if item.rule.direction !== 'any'}<span class="pill">{item.rule.direction}</span>{/if}
+						<span>→ {item.rule.categorySlug}</span>
+						{#if item.rule.person}<span class="pill pill-ok">{item.rule.person}</span>{/if}
+						{#if !item.rule.isActive}<span class="pill pill-warn">inactive</span>{/if}
+						{#if item.differences}
+							<span class="basis-full text-xs text-ink-soft"
+								>Differs from yours: {item.differences.join('; ')}</span
+							>
+						{/if}
+					</li>
+				{/each}
+			</ul>
+			{#if items.length > LIST_CAP}
+				<p class="hint px-3 pb-2">Showing the first {LIST_CAP} of {items.length}.</p>
+			{/if}
+		</details>
+	{/if}
+{/snippet}
+
+{#if importResult}
+	<section class="card mt-8 p-5" aria-labelledby="import-done" data-testid="import-result">
+		<h2 id="import-done" tabindex="-1" class="text-xl font-semibold">Import finished</h2>
+		<dl class="mt-3 grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
+			{#each [['Rules created', importResult.createdRules, 'created'], ['Rules updated', importResult.updatedRules, 'updated'], ['Skipped (identical)', importResult.identicalSkipped, 'identical'], ['Conflicts kept as yours', importResult.conflictsKept, 'kept'], ['Categories created', importResult.categoriesCreated, 'categories'], ['Skipped (invalid)', importResult.skippedInvalid, 'invalid'], ['Skipped (no category)', importResult.skippedMissingCategory, 'nocat'], ['Rows recategorised', importResult.recategorised ?? 0, 'recategorised']] as [label, value, key] (key)}
+				<div class="rounded-lg border border-line p-3">
+					<dt class="text-xs text-ink-soft">{label}</dt>
+					<dd class="num mt-1 text-2xl font-semibold" data-testid="result-{key}">{value}</dd>
+				</div>
+			{/each}
+		</dl>
+		{#if importResult.recategorised === null}
+			<p class="hint">Rules were not re-applied; use "Re-apply rules" to update existing rows.</p>
+		{/if}
+	</section>
+{/if}
+
+{#if preview}
+	<section class="card mt-8 p-5" aria-labelledby="import-preview" data-testid="import-preview">
+		<h2 id="import-preview" tabindex="-1" class="text-xl font-semibold">Import preview</h2>
+		<p class="mt-1 text-sm text-ink-soft">
+			{preview.filename}: {preview.counts.rules} rules, {preview.counts.categories} categories. Nothing
+			has been written yet.
+		</p>
+		<ul class="mt-3 flex flex-wrap gap-2 text-sm" aria-label="Summary">
+			<li class="pill pill-ok"><span class="num">{preview.plan.newRules.length}</span>&nbsp;new</li>
+			<li class="pill"><span class="num">{preview.plan.identical.length}</span>&nbsp;identical</li>
+			<li class="pill {preview.plan.conflicts.length ? 'pill-warn' : ''}">
+				<span class="num">{preview.plan.conflicts.length}</span>&nbsp;conflicts
+			</li>
+			<li class="pill">
+				<span class="num">{preview.plan.missingCategory.length}</span>&nbsp;need a category
+			</li>
+			<li class="pill {preview.plan.invalid.length ? 'pill-warn' : ''}">
+				<span class="num">{preview.plan.invalid.length}</span>&nbsp;invalid
+			</li>
+		</ul>
+
+		<div class="mt-4 space-y-2">
+			{@render planList('New rules', 'new', preview.plan.newRules, { open: true })}
+			{@render planList('Conflicts with your rules', 'conflicts', preview.plan.conflicts, {
+				open: true,
+				note: 'Same pattern and match type, different settings.'
+			})}
+			{@render planList(
+				'Rules whose category does not exist here',
+				'missing',
+				preview.plan.missingCategory,
+				{
+					open: true,
+					note: preview.plan.categoriesToCreate.length
+						? `The file defines: ${preview.plan.categoriesToCreate.map((c) => c.name).join(', ')}.`
+						: undefined
+				}
+			)}
+			{@render planList(
+				'Identical to your rules (skipped)',
+				'identical',
+				preview.plan.identical,
+				{}
+			)}
+			{#if preview.plan.invalid.length}
+				<details class="rounded-lg border border-attention-600" open data-testid="import-invalid">
+					<summary class="flex min-h-11 cursor-pointer items-center gap-2 px-3 text-sm font-medium">
+						Invalid entries (skipped)
+						<span class="pill pill-warn num">{preview.plan.invalid.length}</span>
+					</summary>
+					<ul class="divide-y divide-line px-3 pb-1 text-sm">
+						{#each preview.plan.invalid.slice(0, LIST_CAP) as bad, i (i)}
+							<li class="py-2">
+								<span class="font-mono break-all">{bad.label}</span>
+								<span class="text-xs text-ink-soft">({bad.kind} {bad.index})</span>
+								<span class="block text-attention-600">{bad.reason}</span>
+							</li>
+						{/each}
+					</ul>
+				</details>
+			{/if}
+		</div>
+
+		{#if preview.plan.newRules.length + preview.plan.missingCategory.length + preview.plan.conflicts.length === 0}
+			<p class="notice notice-ok mt-4" role="status" data-testid="import-nothing">
+				{preview.plan.invalid.length
+					? 'Nothing to import: no entry in the file can be added. Fix the invalid entries and try again.'
+					: 'Nothing to import: everything in the file is already here.'}
+			</p>
+		{:else}
+			<form
+				method="POST"
+				action="?/confirmImport"
+				use:enhance
+				class="mt-5 space-y-4 border-t border-line pt-4"
+			>
+				<input type="hidden" name="payload" value={preview.payload} />
+				<input type="hidden" name="expectedInvalid" value={preview.planInvalidCount} />
+				<input type="hidden" name="fileInvalid" value={preview.fileInvalid.length} />
+				<fieldset class="space-y-1">
+					<legend class="label">When a rule already exists with different settings</legend>
+					<label class="flex min-h-11 items-center gap-2 text-sm">
+						<input
+							type="radio"
+							name="conflicts"
+							value="keep"
+							checked
+							class="size-5 border-line-strong text-primary-600 focus:ring-primary-500"
+						/>
+						Keep mine (default)
+					</label>
+					<label class="flex min-h-11 items-center gap-2 text-sm">
+						<input
+							type="radio"
+							name="conflicts"
+							value="imported"
+							class="size-5 border-line-strong text-primary-600 focus:ring-primary-500"
+						/>
+						Use the imported version
+					</label>
+				</fieldset>
+				<label class="flex min-h-11 items-center gap-2 text-sm">
+					<input
+						type="checkbox"
+						name="createMissing"
+						checked
+						class="size-5 rounded border-line text-primary-600 focus:ring-primary-500"
+					/>
+					Create the missing categories from the file ({preview.plan.categoriesToCreate.length})
+				</label>
+				<label class="flex min-h-11 items-center gap-2 text-sm">
+					<input
+						type="checkbox"
+						name="reapply"
+						checked
+						class="size-5 rounded border-line text-primary-600 focus:ring-primary-500"
+					/>
+					Re-apply rules to uncategorised and rule-set rows after import
+				</label>
+				<p class="hint">
+					Everything is written in one step: if anything fails, nothing changes. Rows you
+					categorised by hand are never touched; rows set by a rule that no longer matches go back
+					to uncategorised.
+				</p>
+				<div class="flex flex-wrap gap-3">
+					<button class="btn btn-primary">Import now</button>
+					<a class="btn" href={resolve('/admin/rules')}>Cancel</a>
+				</div>
+			</form>
+		{/if}
+	</section>
+{/if}
 
 <section class="mt-10" aria-labelledby="new">
 	<h2 id="new" class="text-xl font-semibold">New rule</h2>

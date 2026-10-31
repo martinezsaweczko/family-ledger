@@ -74,6 +74,39 @@ their category through re-imports, overlapping imports and re-applying rules; am
 imported rows can never be edited. Each category has an icon (picked from a curated set in **Admin > Categories**) shown
 next to its name everywhere. Salary transfers can be attributed to a person, which feeds the contributions chart.
 
+## Backing up and sharing rules
+
+**Admin > Rules > Import / export** moves your categorisation rules (and the categories they use)
+between installs or into a backup, as a small human-readable JSON file `hearth-rules-YYYY-MM-DD.json`.
+
+- **Export** (`GET /admin/rules/export`, optional `?active=1` for active rules only and `?categories=all`
+  for every category). Format `hearth.rules`, `version: 1`, keys in a fixed order. Rules point to
+  categories by slug and to people by name, never by database id. No statements, amounts, IBANs or
+  account data are ever exported.
+- **Import** is a two-step flow. Upload (up to 2 MB) shows a **preview** and writes nothing: new rules,
+  identical rules (skipped), conflicts (same pattern and match type already exist with a different
+  category, direction, person or active flag), rules whose category does not exist here, and invalid
+  entries with the reason (bad regex, unknown enum, over-long pattern, duplicates in the file, unknown
+  category or person). Unknown fields are ignored. Choose how to treat conflicts (**keep mine**, the
+  default, or **use the imported version**), whether to **create the missing categories** from the
+  file's definitions (default on; a rule whose category is neither here nor defined in the file is
+  invalid and skipped) and whether to **re-apply rules** afterwards (default on; manual categories are
+  never touched, same precedence as everywhere else). **Import now** then writes everything in one
+  database transaction: it is all-or-nothing, and the server re-validates and re-diffs the file instead
+  of trusting the preview (if entries became invalid in between, nothing is written). A result summary
+  lists rules created/updated/skipped, categories created and rows recategorised.
+- **Idempotent**: importing the same file twice creates nothing the second time. There is no
+  "replace everything" mode; nothing is ever deleted by an import.
+- **Priorities.** An imported priority is kept when no existing rule uses that number; otherwise the
+  rule is appended after the highest priority in use, in steps of 10, keeping the relative order it had
+  in the file (priority, then position). Rules without a priority are appended the same way. The
+  priority of a rule that already exists is never changed (a difference in priority alone is not a
+  conflict). "Use the imported version" updates category, direction, person and active flag.
+- Pattern identity follows the database unique index (pattern + match type, case- and accent-insensitive).
+
+This is also the easy way to share a good rule set between two installs or to keep a copy before bigger
+edits. For the data itself use the database dump below.
+
 ## Manual and recurring payments
 
 Some payments never reach the bank file (for example a cleaner paid in cash every Friday). **Admin >

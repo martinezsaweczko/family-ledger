@@ -10,6 +10,8 @@ import {
 	reapplyAll,
 	updateRule
 } from '#lib/server/admin/rules.ts';
+import { MAX_FILE_BYTES } from '#lib/server/admin/rules-file.ts';
+import { confirmImport, previewImport } from '#lib/server/admin/rules-io.ts';
 import { formToObject, parseInteger } from '#lib/server/admin/validate.ts';
 import type { Actions, PageServerLoad } from './$types';
 
@@ -57,6 +59,34 @@ export const actions: Actions = {
 		const dir = form.get('dir') === 'down' ? 'down' : 'up';
 		if (id !== null) await moveRule(id, dir);
 		return { action: 'move', saved: 'Order updated' };
+	},
+	previewImport: async ({ request }) => {
+		const file = (await request.formData()).get('file');
+		if (!(file instanceof File) || file.size === 0) {
+			return fail(400, { action: 'previewImport', importError: 'Choose a JSON file to import.' });
+		}
+		if (file.size > MAX_FILE_BYTES) {
+			return fail(400, { action: 'previewImport', importError: 'The file is larger than 2 MB.' });
+		}
+		const preview = await previewImport(await file.text());
+		if (!preview.ok) return fail(400, { action: 'previewImport', importError: preview.error });
+		return {
+			action: 'previewImport',
+			importPreview: { ...preview, filename: file.name.slice(0, 120) }
+		};
+	},
+	confirmImport: async ({ request }) => {
+		const form = await request.formData();
+		const payload = String(form.get('payload') ?? '');
+		const outcome = await confirmImport(payload, {
+			conflicts: form.get('conflicts') === 'imported' ? 'imported' : 'keep',
+			createMissingCategories: form.get('createMissing') === 'on',
+			reapply: form.get('reapply') === 'on',
+			expectedInvalid: parseInteger(form.get('expectedInvalid')) ?? 0,
+			fileInvalid: parseInteger(form.get('fileInvalid')) ?? 0
+		});
+		if (!outcome.ok) return fail(400, { action: 'confirmImport', importError: outcome.error });
+		return { action: 'confirmImport', importResult: outcome.result };
 	},
 	reapply: async () => {
 		const result = await reapplyAll();
