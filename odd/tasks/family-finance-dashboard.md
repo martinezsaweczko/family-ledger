@@ -117,6 +117,10 @@ store raw rows in MySQL without double counting, categorise, and analyse income/
   Checks: lint, svelte-check, 285 unit tests (server + client), build, 38 Playwright e2e, drizzle-kit generate => no changes.
   Known: adapter-node 6 only reads `origin` at build time and defaults the protocol to https, so form POSTs to the production `node build` over plain http get 403 (README's ORIGIN advice does not apply);
   verified with `node build`, not fixed here (svelte.config / deploy decision).
+- [x] T13 Protocol-agnostic CSRF (commit HASH_T13; route: delegated; trigger: 2+ non-trivial files): `kit.csrf.trustedOrigins: ['*']` + `src/lib/server/csrf.ts` (`isSameOriginRequest`,
+      Origin vs Host ignoring scheme, form content types, `TRUSTED_ORIGINS`) composed in `handle`; README/CLAUDE.md/.env.example/compose.prod.yaml updated.
+      Evidence: RED (missing module) then GREEN 23 specs; real `node build` + curl on /admin/rules?/reapply: matching Origin 200, https Origin same host not 403, evil origin 403, no Origin 403, `null` 403;
+      same request on the pre-fix build 403. e2e `e2e/csrf.e2e.ts`. vite preview never failed because it derives the origin from the real Host (http://localhost:4173), unlike adapter-node.
 
 ## Remaining / future ideas
 
@@ -125,6 +129,7 @@ store raw rows in MySQL without double counting, categorise, and analyse income/
 - CSV and other bank importers
 - Backups / data export (scheduled mysqldump, CSV export)
 - Anomaly alerts (unusual amounts, new recurring charges)
+- AI Accept button and "also create a rule" checkbox are ~32px high vs the 44px touch target in DESIGN.md
 - Client component tests (the browser vitest project currently has none)
 
 ## Next step

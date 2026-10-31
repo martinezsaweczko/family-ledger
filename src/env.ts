@@ -31,5 +31,10 @@ export const variables = defineEnvVars({
 	AI_MIN_CONFIDENCE: {
 		description: 'Minimum confidence (0-1) to accept an AI category (default: 0.6)',
 		schema: optional
+	},
+	TRUSTED_ORIGINS: {
+		description:
+			'Comma-separated full origins (e.g. https://hearth.example.lan) allowed to submit forms in addition to same-host requests. Only needed behind a reverse proxy that rewrites Host.',
+		schema: optional
 	}
 });

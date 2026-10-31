@@ -146,13 +146,24 @@ because the balance after each differs. The original source row is kept verbatim
 | `AI_TIMEOUT_MS`           | app                 | `30000`                                       | Per-request timeout                                             |
 | `AI_MIN_CONFIDENCE`       | app                 | `0.6`                                         | Answers below this confidence (0-1) are ignored                 |
 | `PORT` / `HOST`           | app                 | `3000` / `0.0.0.0`                            | Listen address inside the container                             |
-| `ORIGIN`                  | app                 | unset                                         | Set the public origin when behind a reverse proxy               |
+| `TRUSTED_ORIGINS`         | app                 | unset                                         | Extra origins allowed to submit forms (reverse proxy only)      |
 | `MIGRATIONS_DIR`          | app                 | `./drizzle` from the working directory        | Override the migrations folder                                  |
 | `TEST_DATABASE_ADMIN_URL` | tests               | `mysql://root:root@127.0.0.1:3306`            | Root URL for throwaway `hearth_test_*` / `hearth_e2e` databases |
 | `HEARTH_IMAGE`            | `compose.prod.yaml` | `ghcr.io/OWNER/REPO:latest`                   | Image to deploy                                                 |
 | `MYSQL_ROOT_PASSWORD`     | `compose.prod.yaml` | required                                      | MySQL root password                                             |
 | `MYSQL_PASSWORD`          | `compose.prod.yaml` | required                                      | Password of the `hearth` DB user (use URL-safe characters)      |
 | `HEARTH_PORT`             | `compose.prod.yaml` | `3000`                                        | Host port published on the LAN                                  |
+
+### Form submissions over plain http (CSRF)
+
+Hearth is meant to run on a LAN over plain http (e.g. `http://192.168.1.50:3000`). adapter-node
+assumes `https` unless told otherwise, which makes SvelteKit's built-in origin check reject every
+form POST, and the runtime `ORIGIN` variable does not change that. The built-in check is therefore
+disabled and replaced by an equivalent one (`src/lib/server/csrf.ts`): for POST/PUT/PATCH/DELETE
+requests with a form content type, the `Origin` header must be present and have the same
+host and port as the `Host` header; the scheme is ignored. No setup is needed for direct access.
+Behind a reverse proxy that rewrites `Host`, set `TRUSTED_ORIGINS` to the public origin(s),
+comma-separated, e.g. `TRUSTED_ORIGINS=https://hearth.example.lan`.
 
 ## Release and deploy
 

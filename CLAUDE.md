@@ -76,5 +76,6 @@ The design lives in two places only: `DESIGN.md` (rules) and the `@theme` block 
 
 ## Gotchas
 
+- CSRF: Kit's origin check is disabled (`kit.csrf.trustedOrigins: ['*']` in vite.config.ts) because adapter-node assumes https and would 403 every form POST over plain http; `src/lib/server/csrf.ts` (used in `handle`) compares Origin and Host ignoring the scheme, `TRUSTED_ORIGINS` adds proxy origins. Always check form POSTs against `node build`, not only `vite preview`.
 - `engine-strict=true`; Node 24 (see `.nvmrc`).
 - Playwright browsers are needed for component and e2e tests (`npx playwright install --with-deps chromium`).
