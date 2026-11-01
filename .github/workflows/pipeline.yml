@@ -59,7 +59,8 @@ jobs:
             -e MYSQL_ROOT_PASSWORD=smoke -e MYSQL_DATABASE=hearth -e MYSQL_USER=hearth -e MYSQL_PASSWORD=smoke \
             docker.io/library/mysql:8.4
           for i in $(seq 1 60); do
-            podman exec smoke-db mysqladmin ping -h 127.0.0.1 -uroot -psmoke --silent && break
+            # Over TCP: MySQL's first-start init server listens on the socket only, so this means the real server is up.
+            podman exec smoke-db mysql -h 127.0.0.1 -uhearth -psmoke -e 'SELECT 1' >/dev/null 2>&1 && break
             sleep 2
           done
           podman run -d --name smoke-app --network smoke -p 3000:3000 \
@@ -72,7 +73,12 @@ jobs:
           done
           echo "GET / -> $code"
           if [ "$code" != 200 ]; then podman logs smoke-app; exit 1; fi
-          tables=$(podman exec smoke-db mysql -uhearth -psmoke -N -B hearth -e 'SHOW TABLES' | wc -l)
+          tables=0
+          for i in $(seq 1 30); do
+            tables=$(podman exec smoke-db mysql -h 127.0.0.1 -uhearth -psmoke -N -B hearth -e 'SHOW TABLES' 2>/dev/null | wc -l)
+            [ "$tables" -ge 6 ] && break
+            sleep 2
+          done
           echo "tables created by auto-migrate: $tables"
           [ "$tables" -ge 6 ]
           # Runs the image's HEALTHCHECK command once (no systemd timers needed on the runner).
