@@ -56,7 +56,7 @@ check: ## Type-check (svelte-check)
 ci: lint check test build ## Everything CI runs, locally
 
 image: ## Build the container image
-	$(CONTAINER_CLI) build -t $(IMAGE) .
+	$(CONTAINER_CLI) build --format docker -f Containerfile -t $(IMAGE) .
 
 clean: ## Remove build output and test artifacts
 	rm -rf build .svelte-kit test-results playwright-report

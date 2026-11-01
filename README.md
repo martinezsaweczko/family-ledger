@@ -224,12 +224,12 @@ comma-separated, e.g. `TRUSTED_ORIGINS=https://hearth.example.lan`.
 
 ## Release and deploy
 
-`.github/workflows/docker.yml` is the entry pipeline. On every pull request and push it runs the
+`.github/workflows/pipeline.yml` is the entry pipeline. On every pull request and push it runs the
 tests (`ci.yml`: lint, svelte-check, migration drift check, unit and integration tests, build and
-Playwright e2e against a MySQL service container), then builds the image and smoke-tests it against
-a real MySQL (waits for `/` to return 200 and checks that the tables exist). Only pushes to `main` and
-`v*` tags, after everything passed, publish the image to GHCR (`ghcr.io/<owner>/<repo>`, tags: branch,
-`latest`, semver, sha). Pull requests never push.
+Playwright e2e against a MySQL service container), then builds the image with podman (from the `Containerfile`) and smoke-tests it against
+a real MySQL (waits for `/` to return 200 and checks that the tables exist). Only pushes of
+`vX.Y.Z` tags, after everything passed, publish the image to GHCR (`ghcr.io/<owner>/<repo>`, tags:
+`latest`, semver, sha) and create a GitHub Release. Pull requests and `main` pushes never publish.
 
 To deploy on the home server:
 
