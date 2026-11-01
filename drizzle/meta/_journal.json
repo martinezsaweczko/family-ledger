@@ -1,0 +1,41 @@
+{
+	"version": "7",
+	"dialect": "mysql",
+	"entries": [
+		{
+			"idx": 0,
+			"version": "5",
+			"when": 1793391842914,
+			"tag": "0000_fuzzy_stark_industries",
+			"breakpoints": true
+		},
+		{
+			"idx": 1,
+			"version": "5",
+			"when": 1793479737492,
+			"tag": "0001_bright_nekra",
+			"breakpoints": true
+		},
+		{
+			"idx": 2,
+			"version": "5",
+			"when": 1793479738677,
+			"tag": "0002_supplies_rename_icon_backfill",
+			"breakpoints": true
+		},
+		{
+			"idx": 3,
+			"version": "5",
+			"when": 1793480559191,
+			"tag": "0003_cooing_starfox",
+			"breakpoints": true
+		},
+		{
+			"idx": 4,
+			"version": "5",
+			"when": 1793482594096,
+			"tag": "0004_outgoing_kid_colt",
+			"breakpoints": true
+		}
+	]
+}

@@ -1,0 +1,1 @@
+ALTER TABLE `categories` ADD `icon` varchar(40);

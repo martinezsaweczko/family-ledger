@@ -1,0 +1,776 @@
+{
+	"version": "5",
+	"dialect": "mysql",
+	"id": "33e28367-e0db-45b6-a856-df6cbd71dfae",
+	"prevId": "f0a7421e-769c-4b3b-aebf-939750436823",
+	"tables": {
+		"accounts": {
+			"name": "accounts",
+			"columns": {
+				"id": {
+					"name": "id",
+					"type": "int",
+					"primaryKey": false,
+					"notNull": true,
+					"autoincrement": true
+				},
+				"iban": {
+					"name": "iban",
+					"type": "varchar(34)",
+					"primaryKey": false,
+					"notNull": true,
+					"autoincrement": false
+				},
+				"name": {
+					"name": "name",
+					"type": "varchar(120)",
+					"primaryKey": false,
+					"notNull": true,
+					"autoincrement": false
+				},
+				"currency": {
+					"name": "currency",
+					"type": "char(3)",
+					"primaryKey": false,
+					"notNull": true,
+					"autoincrement": false,
+					"default": "'EUR'"
+				},
+				"created_at": {
+					"name": "created_at",
+					"type": "timestamp",
+					"primaryKey": false,
+					"notNull": true,
+					"autoincrement": false,
+					"default": "(now())"
+				}
+			},
+			"indexes": {
+				"accounts_iban_uq": {
+					"name": "accounts_iban_uq",
+					"columns": ["iban"],
+					"isUnique": true
+				}
+			},
+			"foreignKeys": {},
+			"compositePrimaryKeys": {
+				"accounts_id": {
+					"name": "accounts_id",
+					"columns": ["id"]
+				}
+			},
+			"uniqueConstraints": {},
+			"checkConstraint": {}
+		},
+		"categories": {
+			"name": "categories",
+			"columns": {
+				"id": {
+					"name": "id",
+					"type": "int",
+					"primaryKey": false,
+					"notNull": true,
+					"autoincrement": true
+				},
+				"slug": {
+					"name": "slug",
+					"type": "varchar(60)",
+					"primaryKey": false,
+					"notNull": true,
+					"autoincrement": false
+				},
+				"name": {
+					"name": "name",
+					"type": "varchar(80)",
+					"primaryKey": false,
+					"notNull": true,
+					"autoincrement": false
+				},
+				"color": {
+					"name": "color",
+					"type": "varchar(9)",
+					"primaryKey": false,
+					"notNull": true,
+					"autoincrement": false
+				},
+				"icon": {
+					"name": "icon",
+					"type": "varchar(40)",
+					"primaryKey": false,
+					"notNull": false,
+					"autoincrement": false
+				},
+				"kind": {
+					"name": "kind",
+					"type": "enum('expense','income','transfer','ignore')",
+					"primaryKey": false,
+					"notNull": true,
+					"autoincrement": false
+				},
+				"sort_order": {
+					"name": "sort_order",
+					"type": "int",
+					"primaryKey": false,
+					"notNull": true,
+					"autoincrement": false,
+					"default": 0
+				},
+				"is_active": {
+					"name": "is_active",
+					"type": "boolean",
+					"primaryKey": false,
+					"notNull": true,
+					"autoincrement": false,
+					"default": true
+				}
+			},
+			"indexes": {
+				"categories_slug_uq": {
+					"name": "categories_slug_uq",
+					"columns": ["slug"],
+					"isUnique": true
+				}
+			},
+			"foreignKeys": {},
+			"compositePrimaryKeys": {
+				"categories_id": {
+					"name": "categories_id",
+					"columns": ["id"]
+				}
+			},
+			"uniqueConstraints": {},
+			"checkConstraint": {}
+		},
+		"category_rules": {
+			"name": "category_rules",
+			"columns": {
+				"id": {
+					"name": "id",
+					"type": "int",
+					"primaryKey": false,
+					"notNull": true,
+					"autoincrement": true
+				},
+				"pattern": {
+					"name": "pattern",
+					"type": "varchar(255)",
+					"primaryKey": false,
+					"notNull": true,
+					"autoincrement": false
+				},
+				"match_type": {
+					"name": "match_type",
+					"type": "enum('contains','regex')",
+					"primaryKey": false,
+					"notNull": true,
+					"autoincrement": false,
+					"default": "'contains'"
+				},
+				"category_id": {
+					"name": "category_id",
+					"type": "int",
+					"primaryKey": false,
+					"notNull": true,
+					"autoincrement": false
+				},
+				"person_id": {
+					"name": "person_id",
+					"type": "int",
+					"primaryKey": false,
+					"notNull": false,
+					"autoincrement": false
+				},
+				"priority": {
+					"name": "priority",
+					"type": "int",
+					"primaryKey": false,
+					"notNull": true,
+					"autoincrement": false,
+					"default": 100
+				},
+				"direction": {
+					"name": "direction",
+					"type": "enum('any','in','out')",
+					"primaryKey": false,
+					"notNull": true,
+					"autoincrement": false,
+					"default": "'any'"
+				},
+				"is_active": {
+					"name": "is_active",
+					"type": "boolean",
+					"primaryKey": false,
+					"notNull": true,
+					"autoincrement": false,
+					"default": true
+				}
+			},
+			"indexes": {
+				"category_rules_pattern_uq": {
+					"name": "category_rules_pattern_uq",
+					"columns": ["pattern", "match_type"],
+					"isUnique": true
+				},
+				"category_rules_category_idx": {
+					"name": "category_rules_category_idx",
+					"columns": ["category_id"],
+					"isUnique": false
+				}
+			},
+			"foreignKeys": {
+				"category_rules_category_id_categories_id_fk": {
+					"name": "category_rules_category_id_categories_id_fk",
+					"tableFrom": "category_rules",
+					"tableTo": "categories",
+					"columnsFrom": ["category_id"],
+					"columnsTo": ["id"],
+					"onDelete": "no action",
+					"onUpdate": "no action"
+				},
+				"category_rules_person_id_people_id_fk": {
+					"name": "category_rules_person_id_people_id_fk",
+					"tableFrom": "category_rules",
+					"tableTo": "people",
+					"columnsFrom": ["person_id"],
+					"columnsTo": ["id"],
+					"onDelete": "no action",
+					"onUpdate": "no action"
+				}
+			},
+			"compositePrimaryKeys": {
+				"category_rules_id": {
+					"name": "category_rules_id",
+					"columns": ["id"]
+				}
+			},
+			"uniqueConstraints": {},
+			"checkConstraint": {}
+		},
+		"import_batches": {
+			"name": "import_batches",
+			"columns": {
+				"id": {
+					"name": "id",
+					"type": "int",
+					"primaryKey": false,
+					"notNull": true,
+					"autoincrement": true
+				},
+				"importer_id": {
+					"name": "importer_id",
+					"type": "varchar(60)",
+					"primaryKey": false,
+					"notNull": true,
+					"autoincrement": false
+				},
+				"filename": {
+					"name": "filename",
+					"type": "varchar(255)",
+					"primaryKey": false,
+					"notNull": true,
+					"autoincrement": false
+				},
+				"file_sha256": {
+					"name": "file_sha256",
+					"type": "char(64)",
+					"primaryKey": false,
+					"notNull": true,
+					"autoincrement": false
+				},
+				"account_id": {
+					"name": "account_id",
+					"type": "int",
+					"primaryKey": false,
+					"notNull": true,
+					"autoincrement": false
+				},
+				"rows_total": {
+					"name": "rows_total",
+					"type": "int",
+					"primaryKey": false,
+					"notNull": true,
+					"autoincrement": false,
+					"default": 0
+				},
+				"rows_inserted": {
+					"name": "rows_inserted",
+					"type": "int",
+					"primaryKey": false,
+					"notNull": true,
+					"autoincrement": false,
+					"default": 0
+				},
+				"rows_updated": {
+					"name": "rows_updated",
+					"type": "int",
+					"primaryKey": false,
+					"notNull": true,
+					"autoincrement": false,
+					"default": 0
+				},
+				"rows_unchanged": {
+					"name": "rows_unchanged",
+					"type": "int",
+					"primaryKey": false,
+					"notNull": true,
+					"autoincrement": false,
+					"default": 0
+				},
+				"imported_at": {
+					"name": "imported_at",
+					"type": "timestamp",
+					"primaryKey": false,
+					"notNull": true,
+					"autoincrement": false,
+					"default": "(now())"
+				}
+			},
+			"indexes": {
+				"import_batches_account_idx": {
+					"name": "import_batches_account_idx",
+					"columns": ["account_id"],
+					"isUnique": false
+				}
+			},
+			"foreignKeys": {
+				"import_batches_account_id_accounts_id_fk": {
+					"name": "import_batches_account_id_accounts_id_fk",
+					"tableFrom": "import_batches",
+					"tableTo": "accounts",
+					"columnsFrom": ["account_id"],
+					"columnsTo": ["id"],
+					"onDelete": "no action",
+					"onUpdate": "no action"
+				}
+			},
+			"compositePrimaryKeys": {
+				"import_batches_id": {
+					"name": "import_batches_id",
+					"columns": ["id"]
+				}
+			},
+			"uniqueConstraints": {},
+			"checkConstraint": {}
+		},
+		"people": {
+			"name": "people",
+			"columns": {
+				"id": {
+					"name": "id",
+					"type": "int",
+					"primaryKey": false,
+					"notNull": true,
+					"autoincrement": true
+				},
+				"name": {
+					"name": "name",
+					"type": "varchar(80)",
+					"primaryKey": false,
+					"notNull": true,
+					"autoincrement": false
+				}
+			},
+			"indexes": {
+				"people_name_uq": {
+					"name": "people_name_uq",
+					"columns": ["name"],
+					"isUnique": true
+				}
+			},
+			"foreignKeys": {},
+			"compositePrimaryKeys": {
+				"people_id": {
+					"name": "people_id",
+					"columns": ["id"]
+				}
+			},
+			"uniqueConstraints": {},
+			"checkConstraint": {}
+		},
+		"recurring_entries": {
+			"name": "recurring_entries",
+			"columns": {
+				"id": {
+					"name": "id",
+					"type": "int",
+					"primaryKey": false,
+					"notNull": true,
+					"autoincrement": true
+				},
+				"concept": {
+					"name": "concept",
+					"type": "varchar(255)",
+					"primaryKey": false,
+					"notNull": true,
+					"autoincrement": false
+				},
+				"amount_cents": {
+					"name": "amount_cents",
+					"type": "bigint",
+					"primaryKey": false,
+					"notNull": true,
+					"autoincrement": false
+				},
+				"direction": {
+					"name": "direction",
+					"type": "enum('in','out')",
+					"primaryKey": false,
+					"notNull": true,
+					"autoincrement": false,
+					"default": "'out'"
+				},
+				"category_id": {
+					"name": "category_id",
+					"type": "int",
+					"primaryKey": false,
+					"notNull": false,
+					"autoincrement": false
+				},
+				"frequency": {
+					"name": "frequency",
+					"type": "enum('weekly','biweekly','monthly')",
+					"primaryKey": false,
+					"notNull": true,
+					"autoincrement": false
+				},
+				"anchor": {
+					"name": "anchor",
+					"type": "int",
+					"primaryKey": false,
+					"notNull": true,
+					"autoincrement": false
+				},
+				"start_date": {
+					"name": "start_date",
+					"type": "date",
+					"primaryKey": false,
+					"notNull": true,
+					"autoincrement": false
+				},
+				"end_date": {
+					"name": "end_date",
+					"type": "date",
+					"primaryKey": false,
+					"notNull": false,
+					"autoincrement": false
+				},
+				"is_active": {
+					"name": "is_active",
+					"type": "boolean",
+					"primaryKey": false,
+					"notNull": true,
+					"autoincrement": false,
+					"default": true
+				},
+				"affects_balance": {
+					"name": "affects_balance",
+					"type": "boolean",
+					"primaryKey": false,
+					"notNull": true,
+					"autoincrement": false,
+					"default": false
+				},
+				"note": {
+					"name": "note",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": false,
+					"autoincrement": false
+				},
+				"last_generated": {
+					"name": "last_generated",
+					"type": "date",
+					"primaryKey": false,
+					"notNull": false,
+					"autoincrement": false
+				},
+				"created_at": {
+					"name": "created_at",
+					"type": "timestamp",
+					"primaryKey": false,
+					"notNull": true,
+					"autoincrement": false,
+					"default": "(now())"
+				}
+			},
+			"indexes": {
+				"recurring_entries_active_idx": {
+					"name": "recurring_entries_active_idx",
+					"columns": ["is_active"],
+					"isUnique": false
+				}
+			},
+			"foreignKeys": {
+				"recurring_entries_category_id_categories_id_fk": {
+					"name": "recurring_entries_category_id_categories_id_fk",
+					"tableFrom": "recurring_entries",
+					"tableTo": "categories",
+					"columnsFrom": ["category_id"],
+					"columnsTo": ["id"],
+					"onDelete": "no action",
+					"onUpdate": "no action"
+				}
+			},
+			"compositePrimaryKeys": {
+				"recurring_entries_id": {
+					"name": "recurring_entries_id",
+					"columns": ["id"]
+				}
+			},
+			"uniqueConstraints": {},
+			"checkConstraint": {}
+		},
+		"statements": {
+			"name": "statements",
+			"columns": {
+				"id": {
+					"name": "id",
+					"type": "bigint",
+					"primaryKey": false,
+					"notNull": true,
+					"autoincrement": true
+				},
+				"account_id": {
+					"name": "account_id",
+					"type": "int",
+					"primaryKey": false,
+					"notNull": true,
+					"autoincrement": false
+				},
+				"importer_id": {
+					"name": "importer_id",
+					"type": "varchar(60)",
+					"primaryKey": false,
+					"notNull": true,
+					"autoincrement": false
+				},
+				"dedup_hash": {
+					"name": "dedup_hash",
+					"type": "char(64)",
+					"primaryKey": false,
+					"notNull": true,
+					"autoincrement": false
+				},
+				"booking_date": {
+					"name": "booking_date",
+					"type": "date",
+					"primaryKey": false,
+					"notNull": true,
+					"autoincrement": false
+				},
+				"value_date": {
+					"name": "value_date",
+					"type": "date",
+					"primaryKey": false,
+					"notNull": true,
+					"autoincrement": false
+				},
+				"concept": {
+					"name": "concept",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true,
+					"autoincrement": false
+				},
+				"amount_cents": {
+					"name": "amount_cents",
+					"type": "bigint",
+					"primaryKey": false,
+					"notNull": true,
+					"autoincrement": false
+				},
+				"balance_cents": {
+					"name": "balance_cents",
+					"type": "bigint",
+					"primaryKey": false,
+					"notNull": false,
+					"autoincrement": false
+				},
+				"raw_json": {
+					"name": "raw_json",
+					"type": "json",
+					"primaryKey": false,
+					"notNull": true,
+					"autoincrement": false
+				},
+				"batch_id": {
+					"name": "batch_id",
+					"type": "int",
+					"primaryKey": false,
+					"notNull": true,
+					"autoincrement": false
+				},
+				"category_id": {
+					"name": "category_id",
+					"type": "int",
+					"primaryKey": false,
+					"notNull": false,
+					"autoincrement": false
+				},
+				"category_source": {
+					"name": "category_source",
+					"type": "enum('rule','manual','ai')",
+					"primaryKey": false,
+					"notNull": false,
+					"autoincrement": false
+				},
+				"ai_confidence": {
+					"name": "ai_confidence",
+					"type": "int",
+					"primaryKey": false,
+					"notNull": false,
+					"autoincrement": false
+				},
+				"ai_model": {
+					"name": "ai_model",
+					"type": "varchar(80)",
+					"primaryKey": false,
+					"notNull": false,
+					"autoincrement": false
+				},
+				"person_id": {
+					"name": "person_id",
+					"type": "int",
+					"primaryKey": false,
+					"notNull": false,
+					"autoincrement": false
+				},
+				"note": {
+					"name": "note",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": false,
+					"autoincrement": false
+				},
+				"affects_balance": {
+					"name": "affects_balance",
+					"type": "boolean",
+					"primaryKey": false,
+					"notNull": true,
+					"autoincrement": false,
+					"default": false
+				},
+				"recurring_id": {
+					"name": "recurring_id",
+					"type": "int",
+					"primaryKey": false,
+					"notNull": false,
+					"autoincrement": false
+				},
+				"first_seen_at": {
+					"name": "first_seen_at",
+					"type": "timestamp",
+					"primaryKey": false,
+					"notNull": true,
+					"autoincrement": false,
+					"default": "(now())"
+				},
+				"last_seen_at": {
+					"name": "last_seen_at",
+					"type": "timestamp",
+					"primaryKey": false,
+					"notNull": true,
+					"autoincrement": false,
+					"default": "(now())"
+				}
+			},
+			"indexes": {
+				"statements_dedup_uq": {
+					"name": "statements_dedup_uq",
+					"columns": ["dedup_hash"],
+					"isUnique": true
+				},
+				"statements_booking_date_idx": {
+					"name": "statements_booking_date_idx",
+					"columns": ["booking_date"],
+					"isUnique": false
+				},
+				"statements_category_idx": {
+					"name": "statements_category_idx",
+					"columns": ["category_id"],
+					"isUnique": false
+				},
+				"statements_account_idx": {
+					"name": "statements_account_idx",
+					"columns": ["account_id"],
+					"isUnique": false
+				},
+				"statements_batch_idx": {
+					"name": "statements_batch_idx",
+					"columns": ["batch_id"],
+					"isUnique": false
+				},
+				"statements_recurring_idx": {
+					"name": "statements_recurring_idx",
+					"columns": ["recurring_id"],
+					"isUnique": false
+				}
+			},
+			"foreignKeys": {
+				"statements_account_id_accounts_id_fk": {
+					"name": "statements_account_id_accounts_id_fk",
+					"tableFrom": "statements",
+					"tableTo": "accounts",
+					"columnsFrom": ["account_id"],
+					"columnsTo": ["id"],
+					"onDelete": "no action",
+					"onUpdate": "no action"
+				},
+				"statements_batch_id_import_batches_id_fk": {
+					"name": "statements_batch_id_import_batches_id_fk",
+					"tableFrom": "statements",
+					"tableTo": "import_batches",
+					"columnsFrom": ["batch_id"],
+					"columnsTo": ["id"],
+					"onDelete": "no action",
+					"onUpdate": "no action"
+				},
+				"statements_category_id_categories_id_fk": {
+					"name": "statements_category_id_categories_id_fk",
+					"tableFrom": "statements",
+					"tableTo": "categories",
+					"columnsFrom": ["category_id"],
+					"columnsTo": ["id"],
+					"onDelete": "no action",
+					"onUpdate": "no action"
+				},
+				"statements_person_id_people_id_fk": {
+					"name": "statements_person_id_people_id_fk",
+					"tableFrom": "statements",
+					"tableTo": "people",
+					"columnsFrom": ["person_id"],
+					"columnsTo": ["id"],
+					"onDelete": "no action",
+					"onUpdate": "no action"
+				},
+				"statements_recurring_id_recurring_entries_id_fk": {
+					"name": "statements_recurring_id_recurring_entries_id_fk",
+					"tableFrom": "statements",
+					"tableTo": "recurring_entries",
+					"columnsFrom": ["recurring_id"],
+					"columnsTo": ["id"],
+					"onDelete": "set null",
+					"onUpdate": "no action"
+				}
+			},
+			"compositePrimaryKeys": {
+				"statements_id": {
+					"name": "statements_id",
+					"columns": ["id"]
+				}
+			},
+			"uniqueConstraints": {},
+			"checkConstraint": {}
+		}
+	},
+	"views": {},
+	"_meta": {
+		"schemas": {},
+		"tables": {},
+		"columns": {}
+	},
+	"internal": {
+		"tables": {},
+		"indexes": {}
+	}
+}

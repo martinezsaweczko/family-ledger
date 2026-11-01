@@ -1,0 +1,115 @@
+name: CI/CD
+
+# Entry workflow. Pull requests and pushes to main: tests only.
+# Semantic version tags (vX.Y.Z) on main: tests, then the container is built with podman, smoke-tested against
+# MySQL and published to GHCR tagged with that version, and a GitHub Release is created.
+on:
+  push:
+    branches: [main]
+    tags: ['v[0-9]+.[0-9]+.[0-9]+']
+  pull_request:
+
+concurrency:
+  group: pipeline-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    uses: ./.github/workflows/ci.yml
+
+  image:
+    # The container is only created for a semantic version tag (vX.Y.Z) that points at a commit on main.
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: test
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      packages: write
+    env:
+      IMAGE: ghcr.io/${{ github.repository }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Check the tag is on main
+        run: git merge-base --is-ancestor "$GITHUB_SHA" origin/main
+      - name: Work out the version
+        run: |
+          set -eu
+          version="${GITHUB_REF_NAME#v}"
+          echo "VERSION=$version" >> "$GITHUB_ENV"
+          echo "MINOR=$(echo "$version" | cut -d. -f1,2)" >> "$GITHUB_ENV"
+      # Podman builds OCI images by default, which silently drop HEALTHCHECK: --format docker keeps it.
+      - name: Build image with podman (loaded locally, not pushed yet)
+        run: |
+          podman build --format docker -f Containerfile \
+            --label org.opencontainers.image.source="https://github.com/${GITHUB_REPOSITORY}" \
+            --label org.opencontainers.image.revision="${GITHUB_SHA}" \
+            --label org.opencontainers.image.version="${VERSION}" \
+            -t hearth:smoke .
+      - name: Smoke test the image against a real MySQL
+        run: |
+          set -eu
+          podman network create smoke
+          podman run -d --name smoke-db --network smoke \
+            -e MYSQL_ROOT_PASSWORD=smoke -e MYSQL_DATABASE=hearth -e MYSQL_USER=hearth -e MYSQL_PASSWORD=smoke \
+            docker.io/library/mysql:8.4
+          for i in $(seq 1 60); do
+            podman exec smoke-db mysqladmin ping -h 127.0.0.1 -uroot -psmoke --silent && break
+            sleep 2
+          done
+          podman run -d --name smoke-app --network smoke -p 3000:3000 \
+            -e DATABASE_URL=mysql://hearth:smoke@smoke-db:3306/hearth localhost/hearth:smoke
+          code=000
+          for i in $(seq 1 60); do
+            code=$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:3000/ || true)
+            [ "$code" = 200 ] && break
+            sleep 2
+          done
+          echo "GET / -> $code"
+          if [ "$code" != 200 ]; then podman logs smoke-app; exit 1; fi
+          tables=$(podman exec smoke-db mysql -uhearth -psmoke -N -B hearth -e 'SHOW TABLES' | wc -l)
+          echo "tables created by auto-migrate: $tables"
+          [ "$tables" -ge 6 ]
+          # Runs the image's HEALTHCHECK command once (no systemd timers needed on the runner).
+          healthy=no
+          for i in $(seq 1 20); do
+            if podman healthcheck run smoke-app; then healthy=yes; break; fi
+            sleep 3
+          done
+          echo "container healthy: $healthy"
+          [ "$healthy" = yes ]
+      - name: Dump logs on failure
+        if: failure()
+        run: |
+          podman logs smoke-app || true
+          podman logs smoke-db || true
+      - name: Log in to GHCR
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | podman login ghcr.io -u "${{ github.actor }}" --password-stdin
+      - name: Push image (version, major.minor, latest)
+        run: |
+          set -eu
+          for tag in "${VERSION}" "${MINOR}" latest; do
+            podman tag localhost/hearth:smoke "${IMAGE}:${tag}"
+            podman push "${IMAGE}:${tag}"
+          done
+
+  release:
+    # Only for a version tag that points at a commit on main.
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: image
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Create the GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" --generate-notes --title "$GITHUB_REF_NAME" \
+            --notes "Image: \`ghcr.io/${GITHUB_REPOSITORY}:${GITHUB_REF_NAME#v}\`"

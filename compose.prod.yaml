@@ -1,0 +1,51 @@
+# Production-style stack: Hearth (prebuilt image) + MySQL 8.4. Works with `podman compose` and `docker compose`.
+#
+#   cp .env.example .env     # then set strong passwords and HEARTH_IMAGE
+#   podman compose -f compose.prod.yaml up -d
+#
+# HEARTH_IMAGE defaults to the placeholder below; set it in .env to your GHCR image,
+# e.g. ghcr.io/<owner>/<repo>:latest (or a v1.2.3 tag to pin a release).
+# Tables are created (migrated) and seeded by the app on first start; nothing to run by hand.
+name: hearth
+
+services:
+  app:
+    image: ${HEARTH_IMAGE:-ghcr.io/OWNER/REPO:latest}
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: mysql://hearth:${MYSQL_PASSWORD:?set MYSQL_PASSWORD in .env}@db:3306/hearth
+      BODY_SIZE_LIMIT: ${BODY_SIZE_LIMIT:-25M}
+      # Optional AI categorisation (see .env.example); empty = disabled.
+      AI_BASE_URL: ${AI_BASE_URL:-}
+      AI_MODEL: ${AI_MODEL:-}
+      AI_API_KEY: ${AI_API_KEY:-}
+      AI_TIMEOUT_MS: ${AI_TIMEOUT_MS:-}
+      AI_MIN_CONFIDENCE: ${AI_MIN_CONFIDENCE:-}
+      # Only behind a reverse proxy that rewrites Host: public origin(s) allowed to submit forms.
+      TRUSTED_ORIGINS: ${TRUSTED_ORIGINS:-}
+    ports:
+      - '${HEARTH_PORT:-3000}:3000'
+
+  db:
+    image: docker.io/library/mysql:8.4
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?set MYSQL_ROOT_PASSWORD in .env}
+      MYSQL_DATABASE: hearth
+      MYSQL_USER: hearth
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?set MYSQL_PASSWORD in .env}
+    # No `ports:` on purpose: MySQL is only reachable from the app over the compose network.
+    volumes:
+      - hearth-db:/var/lib/mysql
+    healthcheck:
+      test: ['CMD-SHELL', 'mysqladmin ping -h 127.0.0.1 -uroot -p"$$MYSQL_ROOT_PASSWORD" --silent']
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
+
+volumes:
+  hearth-db:
