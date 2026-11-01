@@ -31,7 +31,7 @@ tabular numbers for amounts, calm palette (primary teal / attention amber / high
 
 ## Skills to use
 
-Installed in `.claude/skills/`. `DESIGN.md` is the source of truth: skills must follow its tokens, never invent a palette.
+Installed in `.claude/skills/` (git-ignored, third-party; sources and hashes in `skills-lock.json`, reinstall with `npx skills add <source>`). `DESIGN.md` is the source of truth: skills must follow its tokens, never invent a palette.
 
 - **design-taste-frontend** (Taste) — art direction and anti-"AI slop" polish for pages and app screens.
 - **web-design-guidelines** — audit UI for accessibility/UX before finishing a UI change (`file:line` findings).
