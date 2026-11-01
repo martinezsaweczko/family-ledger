@@ -19,6 +19,7 @@ export const load: PageServerLoad = async () => {
 				asOf: range.maxDate,
 				monthStart: month.from,
 				balanceCents: current.latestBalanceCents,
+				balanceDate: current.latestBalanceDate,
 				incomeCents: current.incomeCents,
 				expenseCents: current.expenseCents,
 				savingsRate: current.savingsRate,

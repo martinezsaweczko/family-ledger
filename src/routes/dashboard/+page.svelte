@@ -47,7 +47,13 @@
 			sum.latestBalanceCents !== null && d?.previousBalanceCents
 				? (sum.latestBalanceCents - d.previousBalanceCents) / Math.abs(d.previousBalanceCents)
 				: null;
-		const rows: { label: string; value: string; delta: KpiDelta | null; id: string }[] = [
+		const rows: {
+			label: string;
+			value: string;
+			delta: KpiDelta | null;
+			id: string;
+			hint?: string;
+		}[] = [
 			{
 				id: 'income',
 				label: 'Income',
@@ -77,7 +83,8 @@
 				id: 'balance',
 				label: 'Current balance',
 				value: sum.latestBalanceCents === null ? '–' : formatMoney(sum.latestBalanceCents),
-				delta: kpiDelta(balPct, 'up')
+				delta: kpiDelta(balPct, 'up'),
+				hint: sum.latestBalanceDate ? `As of ${formatDate(sum.latestBalanceDate)}` : undefined
 			}
 		];
 		return rows;
@@ -201,11 +208,12 @@
 			>
 				<h2 id="h-kpis" class="sr-only">Key figures</h2>
 				{#each kpis as k (k.id)}
-					<div class={k.id === 'balance' ? 'min-[400px]:col-span-2 lg:col-span-1' : ''}>
+					<div class="h-full {k.id === 'balance' ? 'min-[400px]:col-span-2 lg:col-span-1' : ''}">
 						<KpiCard
 							label={k.label}
 							value={k.value}
 							delta={k.delta}
+							hint={k.hint}
 							testid="kpi-{k.id}"
 							against={k.id === 'balance' ? 'vs period start' : 'vs previous'}
 						/>

@@ -2,7 +2,7 @@
 	import { resolve } from '$app/paths';
 	import MiniBars from '#lib/components/MiniBars.svelte';
 	import { formatBucket } from '#lib/dashboard/insights.ts';
-	import { formatMonthYear } from '#lib/format/date.ts';
+	import { formatDate, formatMonthYear } from '#lib/format/date.ts';
 	import { formatMoney } from '#lib/format/money.ts';
 	import { formatPercent } from '#lib/format/number.ts';
 	import type { PageProps } from './$types';
@@ -89,7 +89,9 @@
 						<h2 id="live-h" class="text-sm font-semibold">Right now</h2>
 						<p class="text-xs text-ink-soft">{monthName(live.monthStart)} so far</p>
 					</div>
-					<p class="mt-4 text-sm text-ink-soft">Current balance</p>
+					<p class="mt-4 text-sm text-ink-soft">
+						Current balance{live.balanceDate ? ` · as of ${formatDate(live.balanceDate)}` : ''}
+					</p>
 					<p class="num font-display text-4xl font-semibold sm:text-5xl" data-testid="live-balance">
 						{live.balanceCents === null ? '–' : formatMoney(live.balanceCents)}
 					</p>
