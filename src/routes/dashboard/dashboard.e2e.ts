@@ -81,6 +81,8 @@ test.describe.serial('dashboard', () => {
 		await expect(page).toHaveURL(/range=3m/);
 		await expect(page).toHaveURL(/g=week/);
 
+		// DateInput only renders its calendar button after hydration; typing earlier is overwritten.
+		await expect(page.getByRole('button', { name: 'Open calendar' }).first()).toBeVisible();
 		await page.getByLabel('From', { exact: true }).fill('01/02/2026');
 		await page.getByLabel('To', { exact: true }).fill('28/02/2026');
 		await page.getByRole('button', { name: 'Apply dates' }).click();

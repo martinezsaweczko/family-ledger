@@ -34,6 +34,8 @@ test.describe.serial('european dates and amounts', () => {
 	test('an impossible date does not submit', async ({ page }) => {
 		await page.goto('/admin/manual');
 		const form = page.locator('form[action$="/addEntry"]');
+		// DateInput only renders its calendar button after hydration; typing earlier is overwritten.
+		await expect(page.getByRole('button', { name: 'Open calendar' }).first()).toBeVisible();
 		await form.getByLabel('Date', { exact: true }).fill('13/13/2026');
 		await form.getByLabel('Amount (EUR)').fill('5');
 		await form.getByLabel('Concept').fill('Never saved Zq');
@@ -56,6 +58,8 @@ test.describe.serial('european dates and amounts', () => {
 
 	test('the filter bar accepts dd/mm/yyyy and the URL carries ISO', async ({ page }) => {
 		await page.goto('/dashboard?range=all');
+		// DateInput only renders its calendar button after hydration; typing earlier is overwritten.
+		await expect(page.getByRole('button', { name: 'Open calendar' }).first()).toBeVisible();
 		await page.getByLabel('From', { exact: true }).fill('01/02/2026');
 		await page.getByLabel('To', { exact: true }).fill('28/02/2026');
 		await page.getByRole('button', { name: 'Apply dates' }).click();
