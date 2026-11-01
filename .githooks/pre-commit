@@ -1,0 +1,6 @@
+#!/bin/sh
+# Runs before every commit: lint, types and unit tests. Skip once with `git commit --no-verify` (CI still runs them).
+set -e
+npm run lint
+npm run check
+npm run test:unit -- --run

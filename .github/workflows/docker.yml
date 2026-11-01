@@ -1,11 +1,11 @@
 name: CI/CD
 
-# Entry workflow. Pull requests: tests, then image build + smoke test (nothing is pushed).
-# Pushes to main and v* tags: the same, then the image is published to GHCR.
+# Entry workflow. Pull requests and pushes to main: tests, then image build + smoke test (nothing is pushed).
+# Semantic version tags (vX.Y.Z): the same, then the image is published to GHCR and a GitHub Release is created.
 on:
   push:
     branches: [main]
-    tags: ['v*']
+    tags: ['v[0-9]+.[0-9]+.[0-9]+']
   pull_request:
 
 concurrency:
@@ -41,7 +41,7 @@ jobs:
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
             type=sha
-            type=raw,value=latest,enable={{is_default_branch}}
+            type=raw,value=latest,enable=${{ startsWith(github.ref, 'refs/tags/v') }}
       - name: Build image (loaded locally, not pushed)
         uses: docker/build-push-action@v6
         with:
@@ -88,14 +88,14 @@ jobs:
           docker logs smoke-app || true
           docker logs smoke-db || true
       - name: Log in to GHCR
-        if: github.event_name != 'pull_request'
+        if: startsWith(github.ref, 'refs/tags/v')
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Push image
-        if: github.event_name != 'pull_request'
+        if: startsWith(github.ref, 'refs/tags/v')
         uses: docker/build-push-action@v6
         with:
           context: .
@@ -103,3 +103,23 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
+
+  release:
+    # Only for a version tag that points at a commit on main.
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: image
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Check the tag is on main
+        run: git merge-base --is-ancestor "$GITHUB_SHA" origin/main
+      - name: Create the GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" --generate-notes --title "$GITHUB_REF_NAME" \
+            --notes "Image: \`ghcr.io/${GITHUB_REPOSITORY}:${GITHUB_REF_NAME#v}\`"
