@@ -7,6 +7,7 @@
 		type FilterState,
 		type PresetId
 	} from '#lib/dashboard/filters.ts';
+	import { SvelteSet } from 'svelte/reactivity';
 	import CategoryIcon from './CategoryIcon.svelte';
 	import DateInput from './DateInput.svelte';
 	import { formatRange } from '#lib/dashboard/insights.ts';
@@ -30,7 +31,7 @@
 		showSource?: boolean;
 	}
 	let {
-		state,
+		state: filters,
 		path,
 		categories,
 		keep = {},
@@ -40,26 +41,39 @@
 
 	const base = $derived(path);
 	const presetHref = (id: Exclude<PresetId, 'custom'>) =>
-		`${base}${buildSearch({ ...state, preset: id }, keep)}`;
-	const selected = $derived(new Set(state.categoryIds));
+		`${base}${buildSearch({ ...filters, preset: id }, keep)}`;
+	// Local copies so the picker can react to clicks before Apply; they reset when the URL state changes.
+	let picked = $derived(new SvelteSet(filters.categoryIds));
+	let pickedUncategorised = $derived(filters.includeUncategorised);
+	let pickerOpen = $state(false);
+	const allCategories = $derived(picked.size === 0 && !pickedUncategorised);
+	const selectAll = () => {
+		picked = new SvelteSet();
+		pickedUncategorised = false;
+	};
+	const toggleCategory = (id: number, on: boolean) => {
+		if (on) picked.add(id);
+		else picked.delete(id);
+	};
+	const selected = $derived(new Set(filters.categoryIds));
 	const pickable = $derived(categories.filter((c) => c.kind === 'expense' || c.kind === 'income'));
-	const catCount = $derived(selected.size + (state.includeUncategorised ? 1 : 0));
+	const catCount = $derived(selected.size + (filters.includeUncategorised ? 1 : 0));
 	const catSummary = $derived(
 		catCount === 0
 			? 'All categories'
 			: catCount === 1
-				? state.includeUncategorised
+				? filters.includeUncategorised
 					? 'Uncategorised'
 					: (categories.find((c) => selected.has(c.id))?.name ?? '1 category')
 				: `${catCount} categories`
 	);
 	const filtersActive = $derived(
-		catCount > 0 || state.includeTransfers || (showSource && state.source !== 'any')
+		catCount > 0 || filters.includeTransfers || (showSource && filters.source !== 'any')
 	);
 	const resetHref = $derived(
 		`${base}${buildSearch(
 			{
-				...state,
+				...filters,
 				categoryIds: [],
 				includeUncategorised: false,
 				includeTransfers: false,
@@ -76,7 +90,7 @@
 	<div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
 		<h2 class="text-sm font-semibold">Period</h2>
 		<p class="num text-xs text-ink-soft" data-testid="range-caption">
-			{formatRange(state.from, state.to)}
+			{formatRange(filters.from, filters.to)}
 		</p>
 	</div>
 
@@ -84,8 +98,8 @@
 		{#each PRESETS as p (p.id)}
 			<a
 				href={presetHref(p.id)}
-				aria-current={state.preset === p.id ? 'true' : undefined}
-				class="inline-flex min-h-11 items-center rounded-full border px-3.5 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600 {state.preset ===
+				aria-current={filters.preset === p.id ? 'true' : undefined}
+				class="inline-flex min-h-11 items-center rounded-full border px-3.5 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600 {filters.preset ===
 				p.id
 					? 'border-primary-600 bg-primary-600 text-on-primary'
 					: 'border-line bg-card text-ink hover:bg-paper'}">{p.label}</a
@@ -93,7 +107,7 @@
 		{/each}
 	</nav>
 
-	<div class="mt-4 grid gap-4 border-t border-line pt-4 lg:grid-cols-[auto_1fr]">
+	<div class="mt-4 grid gap-4 border-t border-line pt-4">
 		<form
 			method="GET"
 			action={base}
@@ -101,22 +115,26 @@
 			aria-label="Custom range"
 		>
 			{#each Object.entries(keep) as [k, v] (k)}<input type="hidden" name={k} value={v} />{/each}
-			{#if state.granularityExplicit}<input type="hidden" name="g" value={state.granularity} />{/if}
-			{#each state.categoryIds as id (id)}<input type="hidden" name="cat" value={id} />{/each}
-			{#if state.includeUncategorised}<input type="hidden" name="uncategorised" value="1" />{/if}
-			{#if showSource && state.source !== 'any'}<input
+			{#if filters.granularityExplicit}<input
+					type="hidden"
+					name="g"
+					value={filters.granularity}
+				/>{/if}
+			{#each filters.categoryIds as id (id)}<input type="hidden" name="cat" value={id} />{/each}
+			{#if filters.includeUncategorised}<input type="hidden" name="uncategorised" value="1" />{/if}
+			{#if showSource && filters.source !== 'any'}<input
 					type="hidden"
 					name="source"
-					value={state.source}
+					value={filters.source}
 				/>{/if}
-			{#if state.includeTransfers}<input type="hidden" name="transfers" value="1" />{/if}
+			{#if filters.includeTransfers}<input type="hidden" name="transfers" value="1" />{/if}
 			<div>
 				<label class="label" for="f-from">From</label>
-				<DateInput class="w-44" id="f-from" name="from" value={state.from ?? ''} required />
+				<DateInput class="w-44" id="f-from" name="from" value={filters.from ?? ''} required />
 			</div>
 			<div>
 				<label class="label" for="f-to">To</label>
-				<DateInput class="w-44" id="f-to" name="to" value={state.to ?? ''} required />
+				<DateInput class="w-44" id="f-to" name="to" value={filters.to ?? ''} required />
 			</div>
 			<button class="btn" type="submit">Apply dates</button>
 		</form>
@@ -124,31 +142,36 @@
 		<form
 			method="GET"
 			action={base}
-			class="flex flex-wrap items-end gap-3 lg:justify-end"
+			class="flex flex-wrap items-end gap-3"
 			aria-label="Chart options"
+			onsubmit={() => (pickerOpen = false)}
 		>
 			{#each Object.entries(keep) as [k, v] (k)}<input type="hidden" name={k} value={v} />{/each}
-			{#if state.preset === 'custom'}
-				{#if state.from}<input type="hidden" name="from" value={state.from} />{/if}
-				{#if state.to}<input type="hidden" name="to" value={state.to} />{/if}
+			{#if filters.preset === 'custom'}
+				{#if filters.from}<input type="hidden" name="from" value={filters.from} />{/if}
+				{#if filters.to}<input type="hidden" name="to" value={filters.to} />{/if}
 			{:else}
-				<input type="hidden" name="range" value={state.preset} />
+				<input type="hidden" name="range" value={filters.preset} />
 			{/if}
 			<div>
 				<label class="label" for="f-g">Group by</label>
 				<select id="f-g" name="g" class="field">
-					<option value="" selected={!state.granularityExplicit}>Auto ({state.granularity})</option>
+					<option value="" selected={!filters.granularityExplicit}
+						>Auto ({filters.granularity})</option
+					>
 					{#each GRANULARITIES as g (g.id)}
-						<option value={g.id} selected={state.granularityExplicit && state.granularity === g.id}
+						<option
+							value={g.id}
+							selected={filters.granularityExplicit && filters.granularity === g.id}
 							>{g.label}</option
 						>
 					{/each}
 				</select>
 			</div>
 			{#if showCategories}
-				<details class="relative">
+				<details class="relative" bind:open={pickerOpen}>
 					<summary
-						class="field flex cursor-pointer list-none items-center gap-2 py-2.5 pr-3 pl-3 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600"
+						class="field flex cursor-pointer list-none items-center gap-2 border py-2.5 pr-3 pl-3 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600"
 					>
 						<span>{catSummary}</span>
 						<svg viewBox="0 0 12 12" class="size-3 text-ink-soft" aria-hidden="true">
@@ -164,9 +187,23 @@
 						>
 							<input
 								type="checkbox"
+								checked={allCategories}
+								onchange={(e) => {
+									selectAll();
+									e.currentTarget.checked = true;
+								}}
+								class="rounded border-line text-primary-600 focus:ring-primary-500"
+							/>
+							<span class="text-sm font-medium">All categories</span>
+						</label>
+						<label
+							class="flex min-h-11 cursor-pointer items-center gap-2 rounded px-2 hover:bg-paper"
+						>
+							<input
+								type="checkbox"
 								name="uncategorised"
 								value="1"
-								checked={state.includeUncategorised}
+								bind:checked={pickedUncategorised}
 								class="rounded border-line text-primary-600 focus:ring-primary-500"
 							/>
 							<CategoryIcon color={null} size="sm" />
@@ -180,7 +217,8 @@
 									type="checkbox"
 									name="cat"
 									value={c.id}
-									checked={selected.has(c.id)}
+									checked={picked.has(c.id)}
+									onchange={(e) => toggleCategory(c.id, e.currentTarget.checked)}
 									class="rounded border-line text-primary-600 focus:ring-primary-500"
 								/>
 								<span
@@ -199,7 +237,7 @@
 					<label class="label" for="f-source">Source</label>
 					<select id="f-source" name="source" class="field">
 						{#each SOURCES as src (src.id)}
-							<option value={src.id === 'any' ? '' : src.id} selected={state.source === src.id}
+							<option value={src.id === 'any' ? '' : src.id} selected={filters.source === src.id}
 								>{src.label}</option
 							>
 						{/each}
@@ -211,7 +249,7 @@
 					type="checkbox"
 					name="transfers"
 					value="1"
-					checked={state.includeTransfers}
+					checked={filters.includeTransfers}
 					class="rounded border-line text-primary-600 focus:ring-primary-500"
 				/>
 				Include transfers

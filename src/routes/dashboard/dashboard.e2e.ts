@@ -102,7 +102,7 @@ test.describe.serial('dashboard', () => {
 		expect(await kpi(page, 'expenses').innerText()).not.toBe(before);
 
 		await page.goto('/dashboard?range=3m');
-		await page.getByText('All categories').click();
+		await page.locator('summary', { hasText: 'All categories' }).click();
 		await page.getByRole('checkbox', { name: 'Supermarket' }).check();
 		await page.getByRole('button', { name: 'Apply', exact: true }).click();
 		await expect(page).toHaveURL(/cat=\d+/);
