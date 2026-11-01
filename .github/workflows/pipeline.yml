@@ -1,7 +1,8 @@
 name: CI/CD
 
-# Entry workflow. Pull requests and pushes to main: tests, then image build + smoke test (nothing is pushed).
-# Semantic version tags (vX.Y.Z): the same, then the image is published to GHCR and a GitHub Release is created.
+# Entry workflow. Pull requests and pushes to main: tests only.
+# Semantic version tags (vX.Y.Z) on main: tests, then the container is built with podman, smoke-tested against
+# MySQL and published to GHCR tagged with that version, and a GitHub Release is created.
 on:
   push:
     branches: [main]
@@ -20,6 +21,8 @@ jobs:
     uses: ./.github/workflows/ci.yml
 
   image:
+    # The container is only created for a semantic version tag (vX.Y.Z) that points at a commit on main.
+    if: startsWith(github.ref, 'refs/tags/v')
     needs: test
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -30,23 +33,23 @@ jobs:
       IMAGE: ghcr.io/${{ github.repository }}
     steps:
       - uses: actions/checkout@v4
-      - id: meta
-        uses: docker/metadata-action@v5
         with:
-          images: ${{ env.IMAGE }}
-          tags: |
-            type=ref,event=branch
-            type=ref,event=pr
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=sha
-            type=raw,value=latest,enable=${{ startsWith(github.ref, 'refs/tags/v') }}
+          fetch-depth: 0
+      - name: Check the tag is on main
+        run: git merge-base --is-ancestor "$GITHUB_SHA" origin/main
+      - name: Work out the version
+        run: |
+          set -eu
+          version="${GITHUB_REF_NAME#v}"
+          echo "VERSION=$version" >> "$GITHUB_ENV"
+          echo "MINOR=$(echo "$version" | cut -d. -f1,2)" >> "$GITHUB_ENV"
       # Podman builds OCI images by default, which silently drop HEALTHCHECK: --format docker keeps it.
-      - name: Build image with podman (loaded locally, not pushed)
+      - name: Build image with podman (loaded locally, not pushed yet)
         run: |
           podman build --format docker -f Containerfile \
             --label org.opencontainers.image.source="https://github.com/${GITHUB_REPOSITORY}" \
             --label org.opencontainers.image.revision="${GITHUB_SHA}" \
+            --label org.opencontainers.image.version="${VERSION}" \
             -t hearth:smoke .
       - name: Smoke test the image against a real MySQL
         run: |
@@ -86,17 +89,13 @@ jobs:
           podman logs smoke-app || true
           podman logs smoke-db || true
       - name: Log in to GHCR
-        if: startsWith(github.ref, 'refs/tags/v')
         run: echo "${{ secrets.GITHUB_TOKEN }}" | podman login ghcr.io -u "${{ github.actor }}" --password-stdin
-      - name: Push image
-        if: startsWith(github.ref, 'refs/tags/v')
-        env:
-          TAGS: ${{ steps.meta.outputs.tags }}
+      - name: Push image (version, major.minor, latest)
         run: |
           set -eu
-          for tag in $TAGS; do
-            podman tag localhost/hearth:smoke "$tag"
-            podman push "$tag"
+          for tag in "${VERSION}" "${MINOR}" latest; do
+            podman tag localhost/hearth:smoke "${IMAGE}:${tag}"
+            podman push "${IMAGE}:${tag}"
           done
 
   release:
@@ -108,10 +107,6 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: Check the tag is on main
-        run: git merge-base --is-ancestor "$GITHUB_SHA" origin/main
       - name: Create the GitHub Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -224,12 +224,13 @@ comma-separated, e.g. `TRUSTED_ORIGINS=https://hearth.example.lan`.
 
 ## Release and deploy
 
-`.github/workflows/pipeline.yml` is the entry pipeline. On every pull request and push it runs the
-tests (`ci.yml`: lint, svelte-check, migration drift check, unit and integration tests, build and
-Playwright e2e against a MySQL service container), then builds the image with podman (from the `Containerfile`) and smoke-tests it against
-a real MySQL (waits for `/` to return 200 and checks that the tables exist). Only pushes of
-`vX.Y.Z` tags, after everything passed, publish the image to GHCR (`ghcr.io/<owner>/<repo>`, tags:
-`latest`, semver, sha) and create a GitHub Release. Pull requests and `main` pushes never publish.
+`.github/workflows/pipeline.yml` is the entry pipeline. Pull requests and pushes to `main` run the
+tests only (`ci.yml`: lint, svelte-check, migration drift check, unit and integration tests, build and
+Playwright e2e against a MySQL service container). The container is created only when a semantic
+version tag `vX.Y.Z` is pushed on a commit of `main`: after the tests pass, podman builds it from the
+`Containerfile`, smoke-tests it against a real MySQL (`/` returns 200, tables exist, healthcheck passes),
+publishes it to GHCR as `ghcr.io/<owner>/<repo>:X.Y.Z` (plus `X.Y` and `latest`) and a GitHub Release is
+created. Release with `git tag v1.2.3 && git push origin v1.2.3` from an up-to-date `main`.
 
 To deploy on the home server:
 
