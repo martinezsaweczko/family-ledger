@@ -354,7 +354,6 @@ export const DEFAULT_ICON_BY_SLUG: Record<string, IconKey> = {
 	travel: 'plane',
 	transport: 'bus',
 	car: 'car',
-	motorbike: 'bike',
 	health: 'heart-pulse',
 	pets: 'paw-print',
 	education: 'graduation-cap',
