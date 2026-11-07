@@ -6,7 +6,8 @@ test.describe('category picker in the filter bar', () => {
 	test('closes after Apply and "All categories" clears the selection', async ({ page }) => {
 		await seedSynthetic();
 		await page.goto('/dashboard?range=all');
-		const picker = page.locator('details', { hasText: 'All categories' });
+		await page.locator('summary', { hasText: 'Filters' }).click();
+		const picker = page.getByTestId('category-picker');
 		await picker.locator('summary').click();
 		await expect(picker).toHaveAttribute('open', '');
 		await expect(picker.getByLabel('All categories')).toBeChecked();
@@ -18,6 +19,7 @@ test.describe('category picker in the filter bar', () => {
 		await expect(picker).not.toHaveAttribute('open', '');
 		await expect(picker.locator('summary')).toContainText('Supermarket');
 
+		await page.locator('summary', { hasText: 'Filters' }).click();
 		await picker.locator('summary').click();
 		await picker.getByLabel('All categories').check();
 		await expect(picker.getByLabel('Supermarket')).not.toBeChecked();

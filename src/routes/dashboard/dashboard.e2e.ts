@@ -76,11 +76,14 @@ test.describe.serial('dashboard', () => {
 			'true'
 		);
 
+		await page.locator('summary', { hasText: 'Filters' }).click();
 		await page.getByLabel('Group by', { exact: true }).selectOption('week');
 		await page.getByRole('button', { name: 'Apply', exact: true }).click();
 		await expect(page).toHaveURL(/range=3m/);
 		await expect(page).toHaveURL(/g=week/);
 
+		// The panel closes after Apply; reopen it for the custom range.
+		await page.locator('summary', { hasText: 'Filters' }).click();
 		// DateInput only renders its calendar button after hydration; typing earlier is overwritten.
 		await expect(page.getByRole('button', { name: 'Open calendar' }).first()).toBeVisible();
 		await page.getByLabel('From', { exact: true }).fill('01/02/2026');
@@ -97,6 +100,7 @@ test.describe.serial('dashboard', () => {
 	test('include transfers and the category picker change what is counted', async ({ page }) => {
 		await page.goto('/dashboard?range=3m');
 		const before = await kpi(page, 'expenses').innerText();
+		await page.locator('summary', { hasText: 'Filters' }).click();
 		await page.getByLabel('Include transfers').check();
 		await page.getByRole('button', { name: 'Apply', exact: true }).click();
 		await expect(page).toHaveURL(/transfers=1/);
@@ -104,6 +108,7 @@ test.describe.serial('dashboard', () => {
 		expect(await kpi(page, 'expenses').innerText()).not.toBe(before);
 
 		await page.goto('/dashboard?range=3m');
+		await page.locator('summary', { hasText: 'Filters' }).click();
 		await page.locator('summary', { hasText: 'All categories' }).click();
 		await page.getByRole('checkbox', { name: 'Supermarket' }).check();
 		await page.getByRole('button', { name: 'Apply', exact: true }).click();

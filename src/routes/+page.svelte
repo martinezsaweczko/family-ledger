@@ -93,39 +93,50 @@
 						<h2 id="live-h" class="text-sm font-semibold">Right now</h2>
 						<p class="text-xs text-ink-soft">{monthName(live.monthStart)} so far</p>
 					</div>
-					<p class="mt-4 text-sm text-ink-soft">
-						Current balance{live.balanceDate ? ` · as of ${formatDate(live.balanceDate)}` : ''}
-					</p>
-					<p
-						class="num font-display text-5xl leading-none font-semibold tracking-[-0.035em] sm:text-6xl"
-						data-testid="live-balance"
-					>
-						{live.balanceCents === null ? '–' : formatMoney(live.balanceCents)}
-					</p>
-					<dl
-						class="mt-5 mb-6 grid grid-cols-1 gap-3 border-t border-line pt-4 min-[480px]:grid-cols-3"
-					>
+					<div class="flex flex-1 flex-col justify-between gap-6">
 						<div>
-							<dt class="text-xs text-ink-soft">Income</dt>
-							<dd class="num mt-1 font-semibold" data-testid="live-income">
-								{formatMoney(live.incomeCents)}
-							</dd>
+							<p class="mt-4 text-sm text-ink-soft">
+								Current balance{live.balanceDate ? ` · as of ${formatDate(live.balanceDate)}` : ''}
+							</p>
+							<p
+								class="num mt-2 font-display text-5xl leading-none font-semibold tracking-[-0.035em] sm:text-6xl"
+								data-testid="live-balance"
+							>
+								{live.balanceCents === null ? '–' : formatMoney(live.balanceCents)}
+							</p>
 						</div>
-						<div>
-							<dt class="text-xs text-ink-soft">Expenses</dt>
-							<dd class="num mt-1 font-semibold" data-testid="live-expenses">
-								{formatMoney(live.expenseCents)}
-							</dd>
-						</div>
-						<div>
-							<dt class="text-xs text-ink-soft">Savings rate</dt>
-							<dd class="num mt-1 font-semibold" data-testid="live-rate">
-								{live.savingsRate === null
-									? '–'
-									: formatPercent(Math.round(live.savingsRate * 100) / 100)}
-							</dd>
-						</div>
-					</dl>
+						<dl class="grid grid-cols-1 gap-4 border-t border-line pt-5 min-[480px]:grid-cols-3">
+							<div>
+								<dt class="text-xs text-ink-soft">Income</dt>
+								<dd
+									class="num mt-1 font-display text-3xl leading-none font-semibold tracking-[-0.035em]"
+									data-testid="live-income"
+								>
+									{formatMoney(live.incomeCents)}
+								</dd>
+							</div>
+							<div>
+								<dt class="text-xs text-ink-soft">Expenses</dt>
+								<dd
+									class="num mt-1 font-display text-3xl leading-none font-semibold tracking-[-0.035em]"
+									data-testid="live-expenses"
+								>
+									{formatMoney(live.expenseCents)}
+								</dd>
+							</div>
+							<div>
+								<dt class="text-xs text-ink-soft">Savings rate</dt>
+								<dd
+									class="num mt-1 font-display text-3xl leading-none font-semibold tracking-[-0.035em]"
+									data-testid="live-rate"
+								>
+									{live.savingsRate === null
+										? '–'
+										: formatPercent(Math.round(live.savingsRate * 100) / 100)}
+								</dd>
+							</div>
+						</dl>
+					</div>
 				{:else}
 					<h2 id="live-h" class="text-sm font-semibold">Nothing imported yet</h2>
 					<p class="mt-2 text-ink-soft" data-testid="landing-empty">
@@ -136,7 +147,7 @@
 					<a class="btn btn-primary mt-4" href={resolve('/admin')}>Import a statement</a>
 				{/if}
 
-				<div class="mt-auto border-t border-line pt-4">
+				<div class="mt-6 border-t border-line pt-4">
 					<div class="mb-2 flex flex-wrap items-center justify-between gap-2">
 						<p class="text-xs font-medium text-ink-soft">
 							{live ? 'Income and expenses, last 12 months' : 'Sample illustration, not your data'}
