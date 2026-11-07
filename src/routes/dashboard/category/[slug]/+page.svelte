@@ -44,7 +44,7 @@
 	<title>{cat.name} · Dashboard · Hearth</title>
 </svelte:head>
 
-<main id="content" class="mx-auto max-w-6xl px-5 py-8 sm:py-10">
+<main id="content" class="mx-auto max-w-6xl px-5 py-6 sm:py-8">
 	<nav aria-label="Breadcrumb" class="mb-3 text-sm text-ink-soft">
 		<a
 			class="underline underline-offset-4 hover:text-ink"
@@ -55,12 +55,12 @@
 	</nav>
 	<header class="mb-5 flex items-center gap-3">
 		<CategoryIcon icon={cat.icon} slug={cat.slug} color={cat.color} size="lg" badge />
-		<h1 class="text-3xl font-semibold">{cat.name}</h1>
+		<h1 class="text-2xl font-semibold sm:text-[1.75rem]">{cat.name}</h1>
 		<span class="pill">{cat.kind}</span>
 	</header>
 
 	{#if !state.hasData}
-		<section class="card px-6 py-14 text-center" data-testid="empty-state">
+		<section class="card px-6 py-16 text-center" data-testid="empty-state">
 			<h2 class="text-xl font-semibold">No statements yet</h2>
 			<a class="btn btn-primary mt-6" href={resolve('/admin')}>Import a statement</a>
 		</section>
@@ -68,11 +68,11 @@
 		<FilterBar {state} path={pathname} categories={data.categories} showCategories={false} {keep} />
 
 		{#if data.failed}
-			<div class="notice notice-warn mt-6" role="alert">{data.failed}</div>
+			<div class="notice notice-warn mt-4" role="alert">{data.failed}</div>
 		{:else if d}
 			<section
 				aria-labelledby="h-kpis"
-				class="mt-6 grid grid-cols-1 gap-3 min-[400px]:grid-cols-2 lg:grid-cols-4"
+				class="mt-4 grid grid-cols-1 gap-4 min-[400px]:grid-cols-2 lg:grid-cols-4"
 			>
 				<h2 id="h-kpis" class="sr-only">Key figures</h2>
 				<KpiCard
@@ -95,13 +95,13 @@
 				<KpiCard testid="kpi-count" label="Transactions" value={String(d.stats?.count ?? 0)} />
 			</section>
 
-			<div class="mt-6 grid gap-4 lg:grid-cols-2">
+			<div class="mt-4 grid gap-4 lg:grid-cols-2">
 				<section
-					class="card p-5 {d.side === 'expense' ? '' : 'lg:col-span-2'}"
+					class="card p-4 sm:p-5 {d.side === 'expense' ? '' : 'lg:col-span-2'}"
 					aria-labelledby="h-trend"
 				>
-					<h2 id="h-trend" class="text-base font-semibold">Over time</h2>
-					<p class="mt-1 text-sm text-ink-soft">
+					<h2 id="h-trend" class="panel-title">Over time</h2>
+					<p class="panel-sub">
 						{trendInsight(d.buckets, d.trend?.values ?? [], g) ?? 'Nothing booked in this period.'}
 					</p>
 					{#if d.trend}
@@ -124,9 +124,9 @@
 				</section>
 
 				{#if d.side === 'expense'}
-					<section class="card p-5" aria-labelledby="h-merch">
-						<h2 id="h-merch" class="text-base font-semibold">Top merchants</h2>
-						<p class="mt-1 text-sm text-ink-soft">
+					<section class="card p-4 sm:p-5" aria-labelledby="h-merch">
+						<h2 id="h-merch" class="panel-title">Top merchants</h2>
+						<p class="panel-sub">
 							{merchantInsight(d.merchants[0], total) ?? 'No expenses in this period.'}
 						</p>
 						{#if d.merchants.length}
@@ -154,12 +154,12 @@
 					</section>
 				{/if}
 
-				<section class="card p-5 lg:col-span-2" aria-labelledby="h-tx">
-					<h2 id="h-tx" class="text-base font-semibold">Transactions</h2>
+				<section class="card p-4 sm:p-5 lg:col-span-2" aria-labelledby="h-tx">
+					<h2 id="h-tx" class="panel-title">Transactions</h2>
 					<form
 						method="GET"
 						action={pathname}
-						class="my-3 flex flex-wrap items-end gap-3"
+						class="my-3 flex flex-wrap items-center gap-3"
 						role="search"
 					>
 						{#each [...new URLSearchParams(filterSearch)] as [k, v] (k)}
@@ -170,11 +170,24 @@
 								name="sort"
 								value={data.sort}
 							/>{/if}
-						<div class="min-w-56 flex-1">
-							<label class="label" for="q">Search description</label>
-							<input id="q" name="q" type="search" class="field" value={data.q} />
+						<div class="min-w-56 flex-1 sm:max-w-sm">
+							<label class="sr-only" for="q">Search description</label>
+							<input
+								id="q"
+								name="q"
+								type="search"
+								class="field"
+								value={data.q}
+								placeholder="Search description…"
+								autocomplete="off"
+								spellcheck="false"
+							/>
 						</div>
 						<button class="btn" type="submit">Search</button>
+						<p class="num ml-auto text-sm text-ink-soft">
+							{d.rows.total}
+							{d.rows.total === 1 ? 'transaction' : 'transactions'}
+						</p>
 					</form>
 					<OverrideNotice {form} />
 					<TransactionTable
@@ -184,7 +197,7 @@
 						sortHref={(s) => href({ ...(data.q ? { q: data.q } : {}), sort: s })}
 						search={filterSearch}
 					/>
-					<div class="mt-4">
+					<div class="mt-2">
 						<Pager
 							page={d.rows.page}
 							pageSize={d.rows.pageSize}
