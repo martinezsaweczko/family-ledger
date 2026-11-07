@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
 	import MiniBars from '#lib/components/MiniBars.svelte';
+	import ScrollBackdrop from '#lib/components/ScrollBackdrop.svelte';
 	import { formatBucket } from '#lib/dashboard/insights.ts';
 	import { formatDate, formatMonthYear } from '#lib/format/date.ts';
 	import { formatMoney } from '#lib/format/money.ts';
@@ -61,19 +62,18 @@
 	/>
 </svelte:head>
 
+<ScrollBackdrop />
+
 <main id="content">
-	<section class="border-b border-line bg-card">
+	<section>
 		<div
-			class="mx-auto grid max-w-6xl gap-10 px-5 py-12 sm:py-16 lg:grid-cols-[1.05fr_1fr] lg:items-center lg:gap-14"
+			class="mx-auto grid max-w-6xl gap-6 px-5 py-10 sm:py-16 lg:grid-cols-[1.05fr_1fr] lg:items-stretch lg:gap-8"
 		>
-			<div>
-				<p class="text-sm font-semibold tracking-widest text-primary-600 uppercase">
-					David & Joanna's household finance
-				</p>
-				<h1 class="mt-4 text-4xl leading-[1.05] font-semibold text-balance sm:text-5xl">
+			<div class="card flex flex-col justify-center p-6 sm:p-10">
+				<h1 class="text-4xl leading-[1.05] font-semibold text-balance sm:text-6xl">
 					One joint account. Two people. A clear picture.
 				</h1>
-				<p class="mt-5 max-w-xl text-lg text-ink-soft">
+				<p class="mt-6 max-w-xl text-lg text-ink">
 					Hearth reads the bank statement, sorts every movement and shows where the money comes
 					from, where it goes and who put it in. It runs on your own network.
 				</p>
@@ -83,7 +83,11 @@
 				</div>
 			</div>
 
-			<section aria-labelledby="live-h" class="card p-5 sm:p-6" data-testid="live-panel">
+			<section
+				aria-labelledby="live-h"
+				class="card flex flex-col p-5 sm:p-6"
+				data-testid="live-panel"
+			>
 				{#if live}
 					<div class="flex flex-wrap items-baseline justify-between gap-2">
 						<h2 id="live-h" class="text-sm font-semibold">Right now</h2>
@@ -95,7 +99,9 @@
 					<p class="num font-display text-4xl font-semibold sm:text-5xl" data-testid="live-balance">
 						{live.balanceCents === null ? '–' : formatMoney(live.balanceCents)}
 					</p>
-					<dl class="mt-5 grid grid-cols-1 gap-3 border-t border-line pt-4 min-[480px]:grid-cols-3">
+					<dl
+						class="mt-5 mb-6 grid grid-cols-1 gap-3 border-t border-line pt-4 min-[480px]:grid-cols-3"
+					>
 						<div>
 							<dt class="text-xs text-ink-soft">Income</dt>
 							<dd class="num mt-1 font-semibold" data-testid="live-income">
@@ -127,7 +133,7 @@
 					<a class="btn btn-primary mt-4" href={resolve('/admin')}>Import a statement</a>
 				{/if}
 
-				<div class="mt-6 border-t border-line pt-4">
+				<div class="mt-auto border-t border-line pt-4">
 					<div class="mb-2 flex flex-wrap items-center justify-between gap-2">
 						<p class="text-xs font-medium text-ink-soft">
 							{live ? 'Income and expenses, last 12 months' : 'Sample illustration, not your data'}
@@ -154,30 +160,32 @@
 		</div>
 	</section>
 
-	<section class="mx-auto max-w-6xl px-5 py-14 sm:py-20" aria-labelledby="features-h">
-		<h2 id="features-h" class="max-w-2xl text-3xl font-semibold text-balance">
-			From a spreadsheet export to an answer in a minute.
-		</h2>
-		<ul class="mt-10 grid gap-x-12 sm:grid-cols-2">
-			{#each features as f (f.title)}
-				<li class="flex gap-4 border-t border-line py-6">
-					<svg
-						viewBox="0 0 24 24"
-						class="mt-0.5 size-6 shrink-0 text-primary-600"
-						fill="none"
-						stroke="currentColor"
-						stroke-width="1.6"
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						aria-hidden="true"><path d={f.icon} /></svg
-					>
-					<div>
-						<h3 class="text-base font-semibold">{f.title}</h3>
-						<p class="mt-1 text-ink-soft">{f.body}</p>
-					</div>
-				</li>
-			{/each}
-		</ul>
+	<section class="mx-auto max-w-6xl px-5 py-10 sm:py-20" aria-labelledby="features-h">
+		<div class="card p-6 sm:p-12">
+			<h2 id="features-h" class="max-w-2xl text-3xl font-semibold text-balance sm:text-4xl">
+				From a spreadsheet export to an answer in a minute.
+			</h2>
+			<ul class="mt-10 grid gap-x-14 gap-y-10 sm:grid-cols-2">
+				{#each features as f (f.title)}
+					<li class="flex gap-4">
+						<svg
+							viewBox="0 0 24 24"
+							class="mt-0.5 size-6 shrink-0 text-primary-600"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="1.6"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							aria-hidden="true"><path d={f.icon} /></svg
+						>
+						<div>
+							<h3 class="text-base font-semibold">{f.title}</h3>
+							<p class="mt-1 text-ink-soft">{f.body}</p>
+						</div>
+					</li>
+				{/each}
+			</ul>
+		</div>
 	</section>
 
 	<section class="bg-band text-on-band">
