@@ -31,3 +31,4 @@ test-results
 
 # Third-party agent skills: reinstall from skills-lock.json (not redistributed)
 /.claude/skills
+/.agents

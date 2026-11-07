@@ -11,3 +11,4 @@ bun.lockb
 # Third-party agent skills
 .claude/skills
 skills-lock.json
+.agents
