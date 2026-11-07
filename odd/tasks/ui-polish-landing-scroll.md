@@ -21,7 +21,7 @@ Polish the landing page, dashboard, transactions, category and admin screens so 
 ## Tasks
 
 - [x] T1 Landing `/` polish + infinite-scroll drawn background (component `ScrollBackdrop.svelte`) — route: delegated writer (2+ non-trivial files)
-- [ ] T2 Dashboard shell + `/dashboard` polish (layout.css, KpiCard, FilterBar, charts surroundings)
+- [x] T2 Dashboard shell + `/dashboard` polish (layout.css, KpiCard, FilterBar, charts surroundings)
 - [ ] T3 `/dashboard/transactions` + `/dashboard/category/[slug]` polish (TransactionTable, Pager, chips)
 - [ ] T4 Admin screens polish (`/admin/*`)
 
@@ -31,4 +31,5 @@ Polish the landing page, dashboard, transactions, category and admin screens so 
 
 ## Progress / evidence
 
+- T2 (delegated writer): lint, check, 340 unit, 23 e2e pass; parent viewed 768 light screenshot, clean. Known: Top merchants card has ~100px spare space at 1440. KpiCard/FilterBar are shared with other pages.
 - T1 (delegated writer): lint, check, 340 unit tests, build pass; e2e `page.svelte.e2e.ts` + `theme.e2e.ts` 7/7 pass (parent re-ran). Screenshots reviewed at 1440 light and 390 dark only; drift not observed live. Eyebrow above h1 dropped (skill rule); DESIGN.md wins on card borders/shadows.

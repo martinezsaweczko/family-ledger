@@ -86,7 +86,7 @@
 
 <!-- eslint-disable svelte/no-navigation-without-resolve -- every href is built from resolve() plus a query string -->
 
-<section class="card p-4" aria-label="Filters">
+<section class="card p-4 sm:p-5" aria-label="Filters">
 	<div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
 		<h2 class="text-sm font-semibold">Period</h2>
 		<p class="num text-xs text-ink-soft" data-testid="range-caption">
@@ -102,12 +102,12 @@
 				class="inline-flex min-h-11 items-center rounded-full border px-3.5 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600 {filters.preset ===
 				p.id
 					? 'border-primary-600 bg-primary-600 text-on-primary'
-					: 'border-line bg-card text-ink hover:bg-paper'}">{p.label}</a
+					: 'border-line bg-card text-ink hover:border-line-strong hover:bg-paper'}">{p.label}</a
 			>
 		{/each}
 	</nav>
 
-	<div class="mt-4 grid gap-4 border-t border-line pt-4">
+	<div class="mt-4 flex flex-wrap items-end gap-x-8 gap-y-4 border-t border-line pt-4">
 		<form
 			method="GET"
 			action={base}
