@@ -96,7 +96,10 @@
 					<p class="mt-4 text-sm text-ink-soft">
 						Current balance{live.balanceDate ? ` · as of ${formatDate(live.balanceDate)}` : ''}
 					</p>
-					<p class="num font-display text-4xl font-semibold sm:text-5xl" data-testid="live-balance">
+					<p
+						class="num font-display text-5xl leading-none font-semibold tracking-[-0.035em] sm:text-6xl"
+						data-testid="live-balance"
+					>
 						{live.balanceCents === null ? '–' : formatMoney(live.balanceCents)}
 					</p>
 					<dl

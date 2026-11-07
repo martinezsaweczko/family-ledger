@@ -44,11 +44,7 @@
 	}
 </script>
 
-<div
-	role="group"
-	aria-label="Theme"
-	class="inline-flex items-center rounded-lg border border-line bg-paper p-0.5"
->
+<div role="group" aria-label="Theme" class="inline-flex items-center rounded-xl bg-paper p-0.5">
 	{#each OPTIONS as o (o.value)}
 		<button
 			type="button"
@@ -56,7 +52,7 @@
 			title={o.label}
 			data-theme-option={o.value}
 			onclick={() => choose(o.value)}
-			class="inline-flex size-11 cursor-pointer items-center justify-center rounded-md transition-colors focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-primary-600 {pref ===
+			class="inline-flex size-11 cursor-pointer items-center justify-center rounded-[10px] transition-colors focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-primary-600 {pref ===
 			o.value
 				? 'bg-primary-50 text-primary-700'
 				: 'text-ink-soft hover:bg-card hover:text-ink'}"

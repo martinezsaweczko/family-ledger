@@ -26,12 +26,12 @@
 	};
 </script>
 
-<article class="card flex h-full flex-col p-4 sm:p-5" data-testid={testid}>
+<article class="card @container flex h-full flex-col p-4 sm:p-6" data-testid={testid}>
 	<h3 class="font-sans text-[13px] font-medium text-ink-soft">
 		{label}
 	</h3>
 	<p
-		class="num mt-1.5 font-display text-xl leading-tight font-semibold tracking-tight [overflow-wrap:anywhere] min-[400px]:text-2xl sm:text-[1.65rem]"
+		class="num mt-2 font-display text-2xl leading-none font-semibold tracking-[-0.035em] [overflow-wrap:anywhere] @min-[11rem]:text-3xl @min-[14rem]:text-4xl @min-[17rem]:text-[2.75rem]"
 		data-kpi-value
 	>
 		{value}

@@ -1,38 +1,45 @@
-# DESIGN.md — "Clear Slate"
+# DESIGN.md — "Stone & Evergreen"
 
-Modern, precise, data-friendly family finance. Think a clean fintech dashboard:
-cool neutrals, one confident teal, thin borders, almost flat surfaces.
+Current, calm, data-friendly family finance. Think a modern fintech product: warm stone ground,
+near-black ink, one deep evergreen accent, large quiet numbers. Surfaces are told apart by tone, not
+by outlines.
 
 ## Principles
 
-1. **Clarity first.** Dense data stays readable: tight hierarchy, thin 1px borders, little shadow.
-2. **Numbers are the hero.** Tabular figures (`.num`), right-aligned in tables, large in summary cards.
-3. **Colour carries meaning, never alone.** Pair colour with icon/text (AA contrast).
-4. **Mobile-first.** Single column < 640px, 3-up cards from `sm`.
+1. **Clarity first.** Dense data stays readable: tight hierarchy, generous space, no decoration.
+2. **Numbers are the hero.** Tabular figures (`.num`), right-aligned in tables, 40-48px in KPI cards and hero figures with tight tracking.
+3. **Tone, not lines.** Cards sit on the ground one tone step away; no card borders, no card shadows. Borders only where a control needs 3:1 (inputs, selects) and for subtle row dividers.
+4. **Colour carries meaning, never alone.** Pair colour with icon/text (AA contrast). Accent stays under ~5% of a screen: it marks the action, the current nav item and data.
+5. **Mobile-first.** Single column < 640px, 3-up cards from `sm`.
 
 ## Colour (tokens in `src/routes/layout.css`, `@theme`)
 
-| Role                       | Token               | Hex               |
-| -------------------------- | ------------------- | ----------------- |
-| Background                 | `paper`             | #F6F8FA           |
-| Surface                    | `card`              | #FFFFFF           |
-| Border                     | `line`              | #DDE3EA           |
-| Text                       | `ink` / `ink-soft`  | #0F1B2A / #566577 |
-| Primary / positive / saved | `primary-50…900`    | #0F9488 (500)     |
-| Attention / overspent      | `attention-100…600` | #E08A00 (500)     |
-| Highlight / goals          | `highlight-100/500` | #4F5BD5           |
+| Role                       | Token               | Hex                          |
+| -------------------------- | ------------------- | ---------------------------- |
+| Background (ground)        | `paper`             | #F2F1ED                      |
+| Surface                    | `card`              | #FFFFFF                      |
+| Divider                    | `line`              | #E6E4DE                      |
+| Text                       | `ink` / `ink-soft`  | #1A1915 / #5C5A52            |
+| Primary / positive / saved | `primary-50…900`    | #2A8A5A (500), #1B6B44 (600) |
+| Attention / overspent      | `attention-100…600` | #C07300 (500)                |
+| Highlight / goals          | `highlight-100/500` | #2F6FD6 (blue)               |
 
-Never rely on colour alone to distinguish income from expense.
+Never rely on colour alone to distinguish income from expense. No indigo/violet, no cream plus terracotta.
 
 ## Typography
 
-**Inter Variable** (self-hosted via @fontsource) for everything. Headlines semibold, tracking -0.02em.
-Use `.num` on every amount. Scale: 12 / 14 / 16 / 20 / 30 / 48.
+**Geist Variable** (self-hosted via `@fontsource-variable/geist`) for everything. Headlines semibold,
+tracking -0.025em; hero numbers -0.035em. Use `.num` on every amount.
+Scale: 12 / 14 / 16 / 20 / 28-32 (page title) / 40-48 (KPI and hero numbers) / 60 (landing hero).
 
 ## Shape & elevation
 
-Cards: `rounded-card` (12px), 1px `line` border, `shadow-card` (hairline). Pills fully rounded.
-Buttons 8–12px radius, 44px min touch target. Dense table rows keep compact visible controls and get the 44px target from an invisible `after:` pseudo-element (`relative` + `after:absolute after:inset-x-0 after:-inset-y-1.5 after:content-['']`, 32px + 2x6px) rather than taller rows.
+Cards: `rounded-card` (16px), `bg-card` on `paper`, no border, no shadow. Only popovers use `shadow-pop`. Pills fully rounded.
+Buttons 8-12px radius, 44px min touch target. Dense table rows keep compact visible controls and get the 44px target from an invisible `after:` pseudo-element (`relative` + `after:absolute after:inset-x-0 after:-inset-y-1.5 after:content-['']`, 32px + 2x6px) rather than taller rows.
+
+## Top bar
+
+`card` tone against the `paper` page, no border. Wordmark "Hearth" in sentence case, semibold, with a small rounded-square mark (primary fill, `on-primary` house glyph). Nav links are pills; the current page is `primary-50` with `primary-700` text and `aria-current="page"`.
 
 ## Components (build order)
 
@@ -50,22 +57,23 @@ Use the `dataviz` skill. Series: primary, highlight, attention, then slate; labe
 
 Three-way control in the nav (System / Light / Dark). System is the default and follows `prefers-color-scheme`; the choice is stored in `localStorage` (`hearth-theme`) and applied by an inline script in `app.html` before first paint, which sets `data-theme` (effective theme) and `data-theme-pref` on `<html>`. `color-scheme` is set per theme so native controls, scrollbars and date pickers match. Pure resolution logic: `src/lib/theme/theme.ts`.
 
-Dark is a deep blue-slate, never pure black or a pure inversion. Surfaces are separated by borders, not shadows (`--shadow-card: none`).
+Dark is a deep, slightly warm charcoal, never pure black or a pure inversion. Cards are one tone step lighter than the ground, not outlined.
 
 | Token                   | Light                       | Dark                                  |
 | ----------------------- | --------------------------- | ------------------------------------- |
-| `paper`                 | #F6F8FA                     | #0B1220                               |
-| `card`                  | #FFFFFF                     | #111A2B                               |
-| `line`                  | #DDE3EA                     | #223047                               |
-| `line-strong`           | #7A8A9C                     | #5D7089 (form control borders)        |
-| `ink` / `ink-soft`      | #0F1B2A / #566577           | #E6EDF5 / #93A4B8                     |
-| `primary-50/100`        | #E6F6F4 / #C2EBE6           | #0E2B2E / #164A4A (tints)             |
-| `primary-500/600`       | #0F9488 / #0B7A70           | #2DD4BF / #2BC9B5                     |
-| `primary-700/900`       | #0A6159 / #063A35           | #5EEAD4 / #CCFBF1 (strong = light)    |
-| `on-primary`            | #FFFFFF                     | #04201C (text on `primary-600` fills) |
-| `attention-100/500/600` | #FDECCD / #C97A00 / #965A00 | #3A2A0C / #FBBF24 / #FCD34D           |
-| `highlight-100/500`     | #E4E7FB / #4F5BD5           | #1F2447 / #8B93F5                     |
-| `band` / `on-band`      | #063A35 / #FFFFFF           | #0F2E33 / #E6EDF5                     |
+| `paper`                 | #F2F1ED                     | #151618                               |
+| `card`                  | #FFFFFF                     | #1F2124                               |
+| `line`                  | #E6E4DE                     | #2B2D31                               |
+| `line-strong`           | #86837A                     | #70747C (form control borders)        |
+| `ink` / `ink-soft`      | #1A1915 / #5C5A52           | #ECEBE6 / #A5A39B                     |
+| `primary-50/100`        | #E8F2EC / #CFE4D8           | #14291F / #1E4331 (tints)             |
+| `primary-500/600`       | #2A8A5A / #1B6B44           | #4CC285 / #3FB377                     |
+| `primary-700/900`       | #15583A / #0C3624           | #7FDBA8 / #D3F3E1 (strong = light)    |
+| `on-primary`            | #FFFFFF                     | #052013 (text on `primary-600` fills) |
+| `attention-100/500/600` | #FBEBCB / #C07300 / #8F5500 | #3A2A0C / #FBBF24 / #FCD34D           |
+| `highlight-100/500`     | #E0EAFB / #2F6FD6           | #152647 / #6EA4F8                     |
+| `band` / `on-band`      | #0F3A27 / #FFFFFF           | #17382A / #ECEBE6                     |
+| `slate-chart`           | #6E6B62                     | #8F9399                               |
 
 Rules:
 

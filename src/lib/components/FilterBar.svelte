@@ -179,7 +179,7 @@
 						</svg>
 					</summary>
 					<fieldset
-						class="absolute right-0 z-20 mt-1 max-h-72 w-64 overflow-auto rounded-lg border border-line bg-card p-2 shadow-card"
+						class="absolute right-0 z-20 mt-1 max-h-72 w-64 overflow-auto rounded-lg border border-line bg-card p-2 shadow-pop"
 					>
 						<legend class="sr-only">Categories</legend>
 						<label

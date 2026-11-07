@@ -34,27 +34,34 @@
 	Skip to content
 </a>
 
-<header class="border-b border-line bg-card">
-	<div class="mx-auto flex max-w-6xl flex-wrap items-center gap-x-6 gap-y-0 px-5">
+<header class="bg-card">
+	<div class="mx-auto flex max-w-6xl flex-wrap items-center gap-x-4 gap-y-0 px-5">
 		<a
 			href={resolve('/')}
-			class="py-3 text-sm font-semibold tracking-widest text-primary-600 uppercase focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600"
+			class="flex items-center gap-2 rounded-lg py-3 text-lg font-semibold tracking-tight text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600"
 		>
+			<svg viewBox="0 0 24 24" class="size-6" aria-hidden="true">
+				<rect width="24" height="24" rx="7" fill="var(--color-primary-600)" />
+				<path
+					d="M7 12.2 12 7.5l5 4.7V17a.8.8 0 0 1-.8.8h-2.7v-3.6h-3v3.6H7.8A.8.8 0 0 1 7 17z"
+					fill="var(--color-on-primary)"
+				/>
+			</svg>
 			Hearth
 		</a>
 		<nav
 			aria-label="Main"
-			class="order-3 -mb-px flex w-full flex-wrap gap-1 sm:order-none sm:w-auto"
+			class="order-3 flex w-full flex-wrap gap-0.5 pb-2 sm:order-none sm:w-auto sm:gap-1 sm:pb-0"
 		>
 			{#each links as link (link.href)}
 				<a
 					href={resolve(link.href)}
 					aria-current={current(link.href) ? 'page' : undefined}
-					class="inline-flex min-h-11 items-center border-b-2 px-3 text-sm font-medium focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-primary-600 {current(
+					class="inline-flex min-h-11 items-center rounded-full px-3 text-sm font-medium focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-primary-600 sm:px-4 {current(
 						link.href
 					)
-						? 'border-primary-600 text-primary-700'
-						: 'border-transparent text-ink-soft hover:text-ink'}"
+						? 'bg-primary-50 text-primary-700'
+						: 'text-ink-soft hover:bg-paper hover:text-ink'}"
 				>
 					{link.label}
 				</a>

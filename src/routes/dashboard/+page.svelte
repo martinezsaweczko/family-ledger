@@ -206,11 +206,15 @@
 
 			<section
 				aria-labelledby="h-kpis"
-				class="mt-4 grid grid-cols-1 gap-4 min-[400px]:grid-cols-2 lg:grid-cols-5"
+				class="mt-4 grid grid-cols-1 gap-4 min-[400px]:grid-cols-2 lg:grid-cols-6"
 			>
 				<h2 id="h-kpis" class="sr-only">Key figures</h2>
-				{#each kpis as k (k.id)}
-					<div class="h-full {k.id === 'balance' ? 'min-[400px]:col-span-2 lg:col-span-1' : ''}">
+				{#each kpis as k, i (k.id)}
+					<div
+						class="h-full {k.id === 'balance' ? 'min-[400px]:col-span-2' : ''} {i < 3
+							? 'lg:col-span-2'
+							: 'lg:col-span-3'}"
+					>
 						<KpiCard
 							label={k.label}
 							value={k.value}

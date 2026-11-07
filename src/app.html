@@ -7,13 +7,13 @@
 		<meta name="color-scheme" content="light dark" />
 		<meta
 			name="theme-color"
-			content="#f6f8fa"
+			content="#f2f1ed"
 			media="(prefers-color-scheme: light)"
 			data-scheme="light"
 		/>
 		<meta
 			name="theme-color"
-			content="#0b1220"
+			content="#151618"
 			media="(prefers-color-scheme: dark)"
 			data-scheme="dark"
 		/>
@@ -32,7 +32,7 @@
 				root.dataset.themePref = pref;
 				root.dataset.theme = theme;
 				if (pref !== 'system') {
-					var colors = { light: '#f6f8fa', dark: '#0b1220' };
+					var colors = { light: '#f2f1ed', dark: '#151618' };
 					var metas = document.querySelectorAll('meta[name="theme-color"]');
 					for (var i = 0; i < metas.length; i++) metas[i].setAttribute('content', colors[theme]);
 				}
