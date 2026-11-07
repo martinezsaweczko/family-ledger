@@ -12,6 +12,16 @@ test.describe.serial('landing page (synthetic data)', () => {
 		await expect(page.getByTestId('landing-chart').locator('svg')).toBeVisible();
 	});
 
+	test('backdrop is decorative and stops under reduced motion', async ({ page }) => {
+		await page.emulateMedia({ reducedMotion: 'reduce' });
+		await page.goto('/');
+		const backdrop = page.getByTestId('scroll-backdrop');
+		await expect(backdrop).toHaveAttribute('aria-hidden', 'true');
+		await expect(backdrop.locator('.track')).toHaveCSS('animation-name', 'none');
+		await page.emulateMedia({ reducedMotion: 'no-preference' });
+		await expect(backdrop.locator('.track')).not.toHaveCSS('animation-name', 'none');
+	});
+
 	test('shows live numbers, the chart and working calls to action', async ({ page }) => {
 		await seedSynthetic();
 		await page.goto('/');

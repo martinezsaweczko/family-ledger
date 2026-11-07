@@ -66,7 +66,7 @@
 
 <section
 	{id}
-	class="max-w-xl space-y-3 rounded-lg border border-line bg-paper p-3 text-sm"
+	class="max-w-xl space-y-3 rounded-lg border border-line bg-paper p-4 text-sm"
 	aria-label="Change category for {concept}"
 	data-testid="row-editor"
 >

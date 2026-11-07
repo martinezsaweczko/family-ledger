@@ -58,12 +58,14 @@ test.describe.serial('european dates and amounts', () => {
 
 	test('the filter bar accepts dd/mm/yyyy and the URL carries ISO', async ({ page }) => {
 		await page.goto('/dashboard?range=all');
+		await page.locator('summary', { hasText: 'Filters' }).click();
 		// DateInput only renders its calendar button after hydration; typing earlier is overwritten.
 		await expect(page.getByRole('button', { name: 'Open calendar' }).first()).toBeVisible();
 		await page.getByLabel('From', { exact: true }).fill('01/02/2026');
 		await page.getByLabel('To', { exact: true }).fill('28/02/2026');
 		await page.getByRole('button', { name: 'Apply dates' }).click();
 		await expect(page).toHaveURL(/from=2026-02-01&to=2026-02-28/);
+		await page.locator('summary', { hasText: 'Filters' }).click();
 		await expect(page.getByLabel('From', { exact: true })).toHaveValue('01/02/2026');
 		await expect(page.getByTestId('range-caption')).toHaveText('01/02/2026 to 28/02/2026');
 	});

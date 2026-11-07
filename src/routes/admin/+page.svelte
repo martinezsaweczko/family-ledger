@@ -32,8 +32,8 @@
 	<title>Imports · Hearth admin</title>
 </svelte:head>
 
-<h1 class="text-3xl font-semibold">Import statements</h1>
-<p class="mt-2 max-w-2xl text-ink-soft">
+<h1 class="page-title">Import statements</h1>
+<p class="page-lead">
 	Upload one or more bank exports. The format is detected automatically. Re-uploading a file or an
 	overlapping export never counts a movement twice.
 </p>
@@ -135,8 +135,8 @@
 	{/each}
 </div>
 
-<section class="mt-12" aria-labelledby="ai-status" data-testid="ai-status">
-	<h2 id="ai-status" class="text-xl font-semibold">AI categorisation</h2>
+<section class="mt-10" aria-labelledby="ai-status" data-testid="ai-status">
+	<h2 id="ai-status" class="section-title">AI categorisation</h2>
 	{#if data.ai.enabled}
 		<p class="mt-1 text-sm text-ink-soft">
 			<span class="pill pill-ok">Enabled</span>
@@ -184,8 +184,8 @@
 	{/if}
 </section>
 
-<section class="mt-12" aria-labelledby="supported">
-	<h2 id="supported" class="text-xl font-semibold">Supported formats</h2>
+<section class="mt-10" aria-labelledby="supported">
+	<h2 id="supported" class="section-title">Supported formats</h2>
 	<p class="mt-1 text-sm text-ink-soft">
 		Each bank is a small plug-in; adding one adds it to this list.
 	</p>
@@ -199,8 +199,8 @@
 	</ul>
 </section>
 
-<section class="mt-12" aria-labelledby="history">
-	<h2 id="history" class="text-xl font-semibold">Import history</h2>
+<section class="mt-10" aria-labelledby="history">
+	<h2 id="history" class="section-title">Import history</h2>
 	{#if data.batches.length === 0}
 		<p class="card mt-3 p-5 text-sm text-ink-soft">Nothing imported yet.</p>
 	{:else}

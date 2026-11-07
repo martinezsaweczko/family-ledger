@@ -117,8 +117,8 @@
 	<title>Rules · Hearth admin</title>
 </svelte:head>
 
-<h1 class="text-3xl font-semibold">Rules</h1>
-<p class="mt-2 max-w-2xl text-ink-soft">
+<h1 class="page-title">Rules</h1>
+<p class="page-lead">
 	The first matching active rule, lowest priority number first, decides a movement's category.
 	Manual choices are never overwritten.
 </p>
@@ -140,7 +140,7 @@
 
 <section class="mt-8 grid gap-6 lg:grid-cols-2" aria-label="Tools">
 	<div class="card p-5">
-		<h2 class="text-lg font-semibold">Test a pattern</h2>
+		<h2 class="section-title">Test a pattern</h2>
 		<p class="mt-1 text-sm text-ink-soft">See what a pattern would match before saving it.</p>
 		<form method="GET" class="mt-3 space-y-3" role="search">
 			<div>
@@ -204,7 +204,7 @@
 	</div>
 
 	<div class="card p-5">
-		<h2 class="text-lg font-semibold">Re-apply rules</h2>
+		<h2 class="section-title">Re-apply rules</h2>
 		<p class="mt-1 text-sm text-ink-soft">
 			Runs every active rule over all movements that were not categorised by hand. Rows whose rule
 			no longer matches go back to uncategorised.
@@ -214,7 +214,7 @@
 		</form>
 	</div>
 	<div class="card p-5 lg:col-span-2" id="import-export">
-		<h2 class="text-lg font-semibold">Import / export</h2>
+		<h2 class="section-title">Import / export</h2>
 		<p class="mt-1 max-w-3xl text-sm text-ink-soft">
 			Back up your rules or share them with another install. The file holds rules and their
 			categories only, never any transactions, amounts or account data.
@@ -315,7 +315,7 @@
 
 {#if importResult}
 	<section class="card mt-8 p-5" aria-labelledby="import-done" data-testid="import-result">
-		<h2 id="import-done" tabindex="-1" class="text-xl font-semibold">Import finished</h2>
+		<h2 id="import-done" tabindex="-1" class="section-title">Import finished</h2>
 		<dl class="mt-3 grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
 			{#each [['Rules created', importResult.createdRules, 'created'], ['Rules updated', importResult.updatedRules, 'updated'], ['Skipped (identical)', importResult.identicalSkipped, 'identical'], ['Conflicts kept as yours', importResult.conflictsKept, 'kept'], ['Categories created', importResult.categoriesCreated, 'categories'], ['Skipped (invalid)', importResult.skippedInvalid, 'invalid'], ['Skipped (no category)', importResult.skippedMissingCategory, 'nocat'], ['Rows recategorised', importResult.recategorised ?? 0, 'recategorised']] as [label, value, key] (key)}
 				<div class="rounded-lg border border-line p-3">
@@ -332,7 +332,7 @@
 
 {#if preview}
 	<section class="card mt-8 p-5" aria-labelledby="import-preview" data-testid="import-preview">
-		<h2 id="import-preview" tabindex="-1" class="text-xl font-semibold">Import preview</h2>
+		<h2 id="import-preview" tabindex="-1" class="section-title">Import preview</h2>
 		<p class="mt-1 text-sm text-ink-soft">
 			{preview.filename}: {preview.counts.rules} rules, {preview.counts.categories} categories. Nothing
 			has been written yet.
@@ -464,7 +464,7 @@
 {/if}
 
 <section class="mt-10" aria-labelledby="new">
-	<h2 id="new" class="text-xl font-semibold">New rule</h2>
+	<h2 id="new" class="section-title">New rule</h2>
 	<form method="POST" action="?/create" use:enhance class="card mt-3 space-y-4 p-5">
 		{@render ruleFields('new', valuesFor('create', null), errorsFor('create', null))}
 		<button class="btn btn-primary">Add rule</button>
@@ -472,10 +472,10 @@
 </section>
 
 <section class="mt-10" aria-labelledby="list">
-	<h2 id="list" class="text-xl font-semibold">All rules ({data.rules.length})</h2>
-	<ol class="mt-3 space-y-3">
+	<h2 id="list" class="section-title">All rules ({data.rules.length})</h2>
+	<ol class="card mt-3 divide-y divide-line">
 		{#each data.rules as rule, i (rule.id)}
-			<li class="card p-4">
+			<li class="px-4 py-3">
 				<div class="flex flex-wrap items-center gap-x-3 gap-y-2">
 					<p class="num w-10 text-sm text-ink-soft">{rule.priority}</p>
 					<p class="min-w-0 font-mono text-sm font-medium break-all">{rule.pattern}</p>
@@ -504,7 +504,7 @@
 						</form>
 					</div>
 				</div>
-				<details class="mt-2" open={form?.action === 'update' && form.id === rule.id}>
+				<details class="mt-1" open={form?.action === 'update' && form.id === rule.id}>
 					<summary
 						class="inline-flex min-h-11 cursor-pointer items-center text-sm font-medium text-primary-700"
 					>

@@ -5,6 +5,7 @@ import { seedSynthetic, syntheticStatements } from '../../../e2e/synthetic.ts';
 const rowsOf = (page: Page) => page.getByTestId('transactions-table').locator('tbody tr');
 
 async function pickUncategorised(page: Page) {
+	await page.locator('summary', { hasText: 'Filters' }).click();
 	await page.locator('summary', { hasText: 'All categories' }).click();
 	await page.getByLabel('Uncategorised', { exact: true }).check();
 	await page.getByRole('button', { name: 'Apply', exact: true }).click();
@@ -25,6 +26,7 @@ test.describe.serial('fix uncategorised transactions faster', () => {
 		await expect(rowsOf(page)).toHaveCount(9);
 		for (const row of await rowsOf(page).all()) await expect(row).toContainText('Uncategorised');
 		await expect(page.getByTestId('uncategorised-count')).toContainText('9 left to categorise');
+		await page.locator('summary', { hasText: 'Filters' }).click();
 		await expect(page.locator('summary', { hasText: 'Uncategorised' })).toBeVisible();
 		await page.getByRole('link', { name: 'Clear filters' }).click();
 		await expect(page).not.toHaveURL(/uncategorised/);
@@ -48,6 +50,7 @@ test.describe.serial('fix uncategorised transactions faster', () => {
 
 	test('the Source select narrows by origin and lives in the URL', async ({ page }) => {
 		await page.goto('/dashboard/transactions?range=all');
+		await page.locator('summary', { hasText: 'Filters' }).click();
 		await page.getByLabel('Source').selectOption('attention');
 		await page.getByRole('button', { name: 'Apply', exact: true }).click();
 		await expect(page).toHaveURL(/source=attention/);

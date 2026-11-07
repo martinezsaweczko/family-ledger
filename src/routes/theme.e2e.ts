@@ -25,7 +25,7 @@ test.describe.serial('theme', () => {
 		const bg = await page.evaluate(
 			() => getComputedStyle(document.body.parentElement!).backgroundColor
 		);
-		expect(bg).toBe('rgb(11, 18, 32)');
+		expect(bg).toBe('rgb(21, 22, 24)');
 
 		await page.emulateMedia({ colorScheme: 'light' });
 		await expect.poll(() => theme(page)).toBe('light');

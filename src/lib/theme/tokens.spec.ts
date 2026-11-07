@@ -47,6 +47,8 @@ const PAIRS: [string, string, number][] = [
 	['attention-600', 'attention-100', TEXT],
 	['ink', 'attention-100', TEXT],
 	['ink', 'primary-50', TEXT],
+	['ink-soft', 'primary-50', TEXT],
+	['primary-700', 'paper', TEXT],
 	['on-band', 'band', TEXT],
 	['on-band-soft', 'band', TEXT],
 	// UI components and graphics (WCAG 1.4.11)
@@ -56,7 +58,11 @@ const PAIRS: [string, string, number][] = [
 	['slate-chart', 'card', UI],
 	['line-strong', 'card', UI],
 	['line-strong', 'paper', UI],
-	['primary-600', 'paper', UI]
+	['primary-600', 'paper', UI],
+	['primary-500', 'paper', UI],
+	['highlight-500', 'paper', UI],
+	['attention-500', 'paper', UI],
+	['slate-chart', 'paper', UI]
 ];
 
 for (const [name, tokens] of [

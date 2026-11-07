@@ -13,8 +13,14 @@
 	const last = $derived(Math.min(total, page * pageSize));
 </script>
 
-<nav class="flex flex-wrap items-center justify-between gap-3 text-sm" aria-label="Pagination">
-	<p class="num text-ink-soft">{first}–{last} of {total}</p>
+<nav
+	class="flex flex-wrap items-center justify-between gap-3 border-t border-line pt-4 text-sm"
+	aria-label="Pagination"
+>
+	<p class="num text-ink-soft">
+		{first}–{last} of {total}
+		{#if pages > 1}<span class="hidden sm:inline"> · page {page} of {pages}</span>{/if}
+	</p>
 	<div class="flex gap-2">
 		{#if page > 1}
 			<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- the caller passes resolved hrefs -->

@@ -16,8 +16,8 @@
 		href === '/admin' ? page.url.pathname === '/admin' : page.url.pathname.startsWith(href);
 </script>
 
-<div class="border-b border-line bg-card">
-	<nav aria-label="Admin" class="mx-auto flex max-w-5xl flex-wrap gap-x-1 px-5">
+<div class="bg-card">
+	<nav aria-label="Admin" class="mx-auto flex max-w-5xl gap-x-1 overflow-x-auto px-2 sm:px-5">
 		{#each links as link (link.href)}
 			<a
 				href={resolve(link.href)}

@@ -58,6 +58,10 @@
 	const amountNext = $derived(sort === 'amount_desc' ? 'amount_asc' : 'amount_desc');
 	const ariaSort = (key: 'date' | 'amount') =>
 		sort.startsWith(key) ? (sort.endsWith('desc') ? 'descending' : 'ascending') : 'none';
+	const sortLink =
+		"relative inline-flex min-h-8 items-center hover:text-ink after:absolute after:inset-x-0 after:-inset-y-1.5 after:content-[''] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600";
+	const arrow = (key: 'date' | 'amount') =>
+		sort.startsWith(key) ? (sort.endsWith('desc') ? '↓' : '↑') : '';
 </script>
 
 <div
@@ -70,27 +74,34 @@
 	<table class="w-full text-left text-sm" data-testid="transactions-table">
 		<thead class="border-b border-line text-xs text-ink-soft">
 			<tr>
-				<th scope="col" class="py-2 pr-3 font-medium" aria-sort={ariaSort('date')}>
+				<th scope="col" class="py-2.5 pr-3 font-medium" aria-sort={ariaSort('date')}>
 					<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- caller passes resolved hrefs -->
-					<a href={sortHref(dateNext)} class="hover:text-ink">Date</a>
+					<a href={sortHref(dateNext)} class={sortLink} class:text-ink={arrow('date')}
+						>Date{#if arrow('date')}<span aria-hidden="true" class="ml-1">{arrow('date')}</span
+							>{/if}</a
+					>
 				</th>
-				<th scope="col" class="py-2 pr-3 font-medium">Description</th>
-				<th scope="col" class="hidden py-2 pr-3 font-medium md:table-cell">Category</th>
-				<th scope="col" class="py-2 text-right font-medium" aria-sort={ariaSort('amount')}>
+				<th scope="col" class="py-2.5 pr-3 font-medium">Description</th>
+				<th scope="col" class="hidden py-2.5 pr-3 font-medium md:table-cell">Category</th>
+				<th scope="col" class="py-2.5 text-right font-medium" aria-sort={ariaSort('amount')}>
 					<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- caller passes resolved hrefs -->
-					<a href={sortHref(amountNext)} class="hover:text-ink">Amount</a>
+					<a href={sortHref(amountNext)} class={sortLink} class:text-ink={arrow('amount')}
+						>Amount{#if arrow('amount')}<span aria-hidden="true" class="ml-1"
+								>{arrow('amount')}</span
+							>{/if}</a
+					>
 				</th>
-				<th scope="col" class="hidden py-2 pl-3 text-right font-medium sm:table-cell">Balance</th>
+				<th scope="col" class="hidden py-2.5 pl-3 text-right font-medium sm:table-cell">Balance</th>
 			</tr>
 		</thead>
 		<tbody class="divide-y divide-line">
 			{#each rows as r, i (r.id)}
-				<tr>
-					<td class="num py-2.5 pr-3 align-top text-ink-soft sm:whitespace-nowrap">
+				<tr class="transition-colors hover:bg-paper">
+					<td class="num py-3 pr-3 align-top text-ink-soft sm:whitespace-nowrap">
 						{formatDate(r.bookingDate)}
 					</td>
-					<td class="max-w-0 min-w-36 py-2.5 pr-3 align-top">
-						<p class="truncate" title={r.concept}>{r.concept}</p>
+					<td class="max-w-0 min-w-28 py-3 pr-3 align-top">
+						<p class="truncate font-medium text-ink" title={r.concept}>{r.concept}</p>
 						<p class="mt-1 md:hidden">
 							<CategoryChip
 								name={r.categoryName ?? 'Uncategorised'}
@@ -133,7 +144,7 @@
 							</button>
 						{/if}
 					</td>
-					<td class="hidden py-2.5 pr-3 align-top md:table-cell">
+					<td class="hidden py-3 pr-3 align-top md:table-cell">
 						<CategoryChip
 							name={r.categoryName ?? 'Uncategorised'}
 							color={r.categoryColor}
@@ -143,21 +154,21 @@
 						/>
 					</td>
 					<td
-						class="num py-2.5 text-right align-top font-medium whitespace-nowrap {r.amountCents > 0
+						class="num py-3 text-right align-top font-semibold whitespace-nowrap {r.amountCents > 0
 							? 'text-primary-700'
 							: 'text-ink'}"
 					>
 						{r.amountCents > 0 ? '+' : ''}{formatMoney(r.amountCents)}
 					</td>
 					<td
-						class="num hidden py-2.5 pl-3 text-right align-top whitespace-nowrap text-ink-soft sm:table-cell"
+						class="num hidden py-3 pl-3 text-right align-top whitespace-nowrap text-ink-soft sm:table-cell"
 					>
 						{r.balanceCents === null ? '–' : formatMoney(r.balanceCents)}
 					</td>
 				</tr>
 				{#if categories && openId === r.id}
-					<tr class="border-t-0">
-						<td colspan="5" class="pb-3">
+					<tr class="border-t-0 hover:bg-transparent">
+						<td colspan="5" class="pb-4">
 							<RowCategoryEditor
 								id="edit-{r.id}"
 								statementId={r.id}
@@ -172,7 +183,7 @@
 					</tr>
 				{/if}
 			{:else}
-				<tr><td colspan="5" class="py-8 text-center text-ink-soft">No transactions match.</td></tr>
+				<tr><td colspan="5" class="py-12 text-center text-ink-soft">No transactions match.</td></tr>
 			{/each}
 		</tbody>
 	</table>

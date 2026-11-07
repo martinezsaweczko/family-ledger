@@ -20,25 +20,25 @@
 	}: Props = $props();
 
 	const tone = {
-		good: 'bg-primary-50 text-primary-700',
-		bad: 'bg-attention-100 text-ink',
-		neutral: 'bg-paper text-ink-soft'
+		good: 'text-primary-700',
+		bad: 'text-attention-600',
+		neutral: 'text-ink-soft'
 	};
 </script>
 
-<article class="card h-full p-4 sm:p-5" data-testid={testid}>
-	<h3 class="font-sans text-sm font-medium text-ink-soft">
+<article class="card @container flex h-full flex-col p-4 sm:p-6" data-testid={testid}>
+	<h3 class="font-sans text-[13px] font-medium text-ink-soft">
 		{label}
 	</h3>
 	<p
-		class="num mt-1 font-display text-xl font-semibold [overflow-wrap:anywhere] min-[400px]:text-2xl sm:text-[1.65rem]"
+		class="num mt-2 font-display text-2xl leading-none font-semibold tracking-[-0.035em] [overflow-wrap:anywhere] @min-[11rem]:text-3xl @min-[14rem]:text-4xl @min-[17rem]:text-[2.75rem]"
 		data-kpi-value
 	>
 		{value}
 	</p>
 	{#if delta}
 		<p
-			class="num mt-2 inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium {tone[
+			class="num mt-auto flex flex-wrap items-center gap-x-1.5 pt-2.5 text-xs font-medium {tone[
 				delta.tone
 			]}"
 		>
@@ -52,8 +52,8 @@
 				{/if}
 			</svg>
 			<span>{delta.text}</span>
-			<span class="font-normal">{against}</span>
+			<span class="font-normal text-ink-soft">{against}</span>
 		</p>
 	{/if}
-	{#if hint}<p class="mt-2 text-xs text-ink-soft">{hint}</p>{/if}
+	{#if hint}<p class="mt-auto pt-2.5 text-xs text-ink-soft">{hint}</p>{/if}
 </article>

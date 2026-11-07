@@ -7,6 +7,12 @@
       "skillPath": "skills/taste-skill/SKILL.md",
       "computedHash": "6ac8ba6089dcbc303744a507a4587113c5d845ca2f658b3ce2b0b5eab108fb0d"
     },
+    "playwright-skill": {
+      "source": "lackeyjb/playwright-skill",
+      "sourceType": "github",
+      "skillPath": "skills/playwright-skill/SKILL.md",
+      "computedHash": "813e921d157dccfeff1b2f60dd0cdb1fe7dd02c77c2762cb7dd320dae17fc562"
+    },
     "screenshot-to-code": {
       "source": "onewave-ai/claude-skills",
       "sourceType": "github",

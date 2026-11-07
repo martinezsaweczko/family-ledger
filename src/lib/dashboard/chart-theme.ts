@@ -1,6 +1,6 @@
 import type { Scheme } from '#lib/theme/color.ts';
 
-/** Chart colours come from the Clear Slate tokens in layout.css (read at runtime, never hardcoded). */
+/** Chart colours come from the Stone & Evergreen tokens in layout.css (read at runtime, never hardcoded). */
 export interface ChartTheme {
 	ink: string;
 	inkSoft: string;
@@ -21,19 +21,19 @@ export interface ChartTheme {
 }
 
 const FALLBACK: ChartTheme = {
-	ink: '#0f1b2a',
-	inkSoft: '#566577',
-	line: '#dde3ea',
+	ink: '#1a1915',
+	inkSoft: '#5c5a52',
+	line: '#e6e4de',
 	card: '#ffffff',
-	primary: '#0f9488',
-	primaryLight: '#c2ebe6',
-	highlight: '#4f5bd5',
+	primary: '#2a8a5a',
+	primaryLight: '#cfe4d8',
+	highlight: '#2f6fd6',
 	attention: '#e08a00',
-	slate: '#64748b',
-	pointer: 'rgb(15 27 42 / 0.05)',
-	shadow: '0 1px 2px rgb(15 27 42 / 0.12)',
+	slate: '#6e6b62',
+	pointer: 'rgb(26 25 21 / 0.05)',
+	shadow: '0 4px 16px rgb(26 25 21 / 0.12)',
 	scheme: 'light',
-	font: 'Inter Variable, system-ui, sans-serif',
+	font: 'Geist Variable, system-ui, sans-serif',
 	animate: true
 };
 

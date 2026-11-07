@@ -2,10 +2,10 @@
 @plugin '@tailwindcss/forms';
 @plugin '@tailwindcss/typography';
 
-@import '@fontsource-variable/inter';
+@import '@fontsource-variable/geist';
 
 /*
- * Design tokens: "Clear Slate", see DESIGN.md.
+ * Design tokens: "Stone & Evergreen", see DESIGN.md.
  * Every colour exists twice: light values on :root, dark values under
  * :root[data-theme='dark'] and (for System / no-JS) the prefers-color-scheme block below.
  * Keep the three in sync; src/lib/theme/tokens.spec.ts parses this file and fails if they drift
@@ -13,112 +13,109 @@
  */
 :root {
 	color-scheme: light;
-	--t-paper: #f6f8fa;
+	--t-paper: #f2f1ed;
 	--t-card: #ffffff;
-	--t-line: #dde3ea;
-	--t-line-strong: #7a8a9c;
-	--t-ink: #0f1b2a;
-	--t-ink-soft: #566577;
+	--t-line: #e6e4de;
+	--t-line-strong: #86837a;
+	--t-ink: #1a1915;
+	--t-ink-soft: #5c5a52;
 	--t-on-primary: #ffffff;
 
-	--t-primary-50: #e6f6f4;
-	--t-primary-100: #c2ebe6;
-	--t-primary-500: #0f9488;
-	--t-primary-600: #0b7a70;
-	--t-primary-700: #0a6159;
-	--t-primary-900: #063a35;
+	--t-primary-50: #e8f2ec;
+	--t-primary-100: #cfe4d8;
+	--t-primary-500: #2a8a5a;
+	--t-primary-600: #1b6b44;
+	--t-primary-700: #15583a;
+	--t-primary-900: #0c3624;
 
-	--t-attention-100: #fdeccd;
-	--t-attention-500: #c97a00;
-	--t-attention-600: #965a00;
+	--t-attention-100: #fbebcb;
+	--t-attention-500: #c07300;
+	--t-attention-600: #8f5500;
 
-	--t-highlight-100: #e4e7fb;
-	--t-highlight-500: #4f5bd5;
+	--t-highlight-100: #e0eafb;
+	--t-highlight-500: #2f6fd6;
 
-	--t-band: #063a35;
+	--t-band: #0f3a27;
 	--t-on-band: #ffffff;
-	--t-on-band-soft: #c2ebe6;
+	--t-on-band-soft: #c4ddcf;
 
-	--t-slate-chart: #64748b;
-	--t-pointer: rgb(15 27 42 / 0.05);
-	--t-shadow-card: 0 1px 2px rgb(15 27 42 / 0.06);
-	--t-shadow-pop: 0 1px 2px rgb(15 27 42 / 0.12);
+	--t-slate-chart: #6e6b62;
+	--t-pointer: rgb(26 25 21 / 0.05);
+	--t-shadow-pop: 0 4px 16px rgb(26 25 21 / 0.12);
 }
 
 :root[data-theme='dark'] {
 	color-scheme: dark;
-	--t-paper: #0b1220;
-	--t-card: #111a2b;
-	--t-line: #223047;
-	--t-line-strong: #5d7089;
-	--t-ink: #e6edf5;
-	--t-ink-soft: #93a4b8;
-	--t-on-primary: #04201c;
+	--t-paper: #151618;
+	--t-card: #1f2124;
+	--t-line: #2b2d31;
+	--t-line-strong: #70747c;
+	--t-ink: #ecebe6;
+	--t-ink-soft: #a5a39b;
+	--t-on-primary: #052013;
 
-	--t-primary-50: #0e2b2e;
-	--t-primary-100: #164a4a;
-	--t-primary-500: #2dd4bf;
-	--t-primary-600: #2bc9b5;
-	--t-primary-700: #5eead4;
-	--t-primary-900: #ccfbf1;
+	--t-primary-50: #14291f;
+	--t-primary-100: #1e4331;
+	--t-primary-500: #4cc285;
+	--t-primary-600: #3fb377;
+	--t-primary-700: #7fdba8;
+	--t-primary-900: #d3f3e1;
 
 	--t-attention-100: #3a2a0c;
 	--t-attention-500: #fbbf24;
 	--t-attention-600: #fcd34d;
 
-	--t-highlight-100: #1f2447;
-	--t-highlight-500: #8b93f5;
+	--t-highlight-100: #152647;
+	--t-highlight-500: #6ea4f8;
 
-	--t-band: #0f2e33;
-	--t-on-band: #e6edf5;
-	--t-on-band-soft: #a7c4c4;
+	--t-band: #17382a;
+	--t-on-band: #ecebe6;
+	--t-on-band-soft: #b4cfbf;
 
-	--t-slate-chart: #8696ab;
-	--t-pointer: rgb(230 237 245 / 0.06);
-	--t-shadow-card: none;
-	--t-shadow-pop: 0 4px 12px rgb(0 0 0 / 0.45);
+	--t-slate-chart: #8f9399;
+	--t-pointer: rgb(236 235 230 / 0.06);
+	--t-shadow-pop: 0 6px 18px rgb(0 0 0 / 0.5);
 }
 
 @media (prefers-color-scheme: dark) {
 	:root:not([data-theme='light']) {
 		color-scheme: dark;
-		--t-paper: #0b1220;
-		--t-card: #111a2b;
-		--t-line: #223047;
-		--t-line-strong: #5d7089;
-		--t-ink: #e6edf5;
-		--t-ink-soft: #93a4b8;
-		--t-on-primary: #04201c;
+		--t-paper: #151618;
+		--t-card: #1f2124;
+		--t-line: #2b2d31;
+		--t-line-strong: #70747c;
+		--t-ink: #ecebe6;
+		--t-ink-soft: #a5a39b;
+		--t-on-primary: #052013;
 
-		--t-primary-50: #0e2b2e;
-		--t-primary-100: #164a4a;
-		--t-primary-500: #2dd4bf;
-		--t-primary-600: #2bc9b5;
-		--t-primary-700: #5eead4;
-		--t-primary-900: #ccfbf1;
+		--t-primary-50: #14291f;
+		--t-primary-100: #1e4331;
+		--t-primary-500: #4cc285;
+		--t-primary-600: #3fb377;
+		--t-primary-700: #7fdba8;
+		--t-primary-900: #d3f3e1;
 
 		--t-attention-100: #3a2a0c;
 		--t-attention-500: #fbbf24;
 		--t-attention-600: #fcd34d;
 
-		--t-highlight-100: #1f2447;
-		--t-highlight-500: #8b93f5;
+		--t-highlight-100: #152647;
+		--t-highlight-500: #6ea4f8;
 
-		--t-band: #0f2e33;
-		--t-on-band: #e6edf5;
-		--t-on-band-soft: #a7c4c4;
+		--t-band: #17382a;
+		--t-on-band: #ecebe6;
+		--t-on-band-soft: #b4cfbf;
 
-		--t-slate-chart: #8696ab;
-		--t-pointer: rgb(230 237 245 / 0.06);
-		--t-shadow-card: none;
-		--t-shadow-pop: 0 4px 12px rgb(0 0 0 / 0.45);
+		--t-slate-chart: #8f9399;
+		--t-pointer: rgb(236 235 230 / 0.06);
+		--t-shadow-pop: 0 6px 18px rgb(0 0 0 / 0.5);
 	}
 }
 
 /* Tailwind tokens point at the runtime variables above, so utilities follow the theme. */
 @theme static {
-	--font-display: 'Inter Variable', system-ui, sans-serif;
-	--font-sans: 'Inter Variable', system-ui, sans-serif;
+	--font-display: 'Geist Variable', system-ui, sans-serif;
+	--font-sans: 'Geist Variable', system-ui, sans-serif;
 
 	--color-paper: var(--t-paper);
 	--color-card: var(--t-card);
@@ -150,8 +147,7 @@
 	--color-slate-chart: var(--t-slate-chart);
 	--color-pointer: var(--t-pointer);
 
-	--radius-card: 0.75rem;
-	--shadow-card: var(--t-shadow-card);
+	--radius-card: 1rem;
 	--shadow-pop: var(--t-shadow-pop);
 }
 
@@ -165,7 +161,7 @@
 	h1,
 	h2,
 	h3 {
-		letter-spacing: -0.02em;
+		letter-spacing: -0.025em;
 	}
 	.num {
 		font-variant-numeric: tabular-nums;
@@ -201,7 +197,22 @@
 /* Shared admin building blocks, built only from the tokens above */
 @layer components {
 	.card {
-		@apply min-w-0 rounded-card border border-line bg-card shadow-card;
+		@apply min-w-0 rounded-card bg-card;
+	}
+	.panel-title {
+		@apply text-base font-semibold tracking-tight text-ink;
+	}
+	.panel-sub {
+		@apply mt-1 text-sm leading-snug text-ink-soft;
+	}
+	.page-title {
+		@apply text-[1.75rem] leading-tight font-semibold tracking-tight text-ink sm:text-[2rem];
+	}
+	.page-lead {
+		@apply mt-1.5 max-w-2xl text-sm leading-relaxed text-ink-soft sm:text-base;
+	}
+	.section-title {
+		@apply text-lg font-semibold text-ink;
 	}
 	.btn {
 		@apply inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-lg border border-line bg-card px-4 text-sm font-medium text-ink transition-colors hover:bg-paper focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600 disabled:cursor-not-allowed disabled:opacity-50;

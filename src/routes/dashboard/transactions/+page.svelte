@@ -43,16 +43,16 @@
 	<title>Transactions · Hearth</title>
 </svelte:head>
 
-<main id="content" class="mx-auto max-w-6xl px-5 py-8 sm:py-10">
+<main id="content" class="mx-auto max-w-6xl px-5 py-6 sm:py-8">
 	<header class="mb-5">
-		<h1 class="text-3xl font-semibold">Transactions</h1>
-		<p class="mt-1 text-ink-soft">
+		<h1 class="text-2xl font-semibold sm:text-[1.75rem]">Transactions</h1>
+		<p class="mt-1 text-sm text-ink-soft sm:text-base">
 			Every movement in the selected period. Search, sort and filter.
 		</p>
 	</header>
 
 	{#if !state.hasData}
-		<section class="card px-6 py-14 text-center" data-testid="empty-state">
+		<section class="card px-6 py-16 text-center" data-testid="empty-state">
 			<h2 class="text-xl font-semibold">No statements yet</h2>
 			<p class="mx-auto mt-2 max-w-md text-ink-soft">
 				Import a bank export to see transactions here.
@@ -68,19 +68,19 @@
 			showSource
 		/>
 
-		<section class="card mt-6 p-5" aria-label="Transactions">
+		<section class="card mt-4 p-4 sm:p-5" aria-label="Transactions">
 			<form
 				method="GET"
 				action={resolve('/dashboard/transactions')}
-				class="mb-4 flex flex-wrap items-end gap-3"
+				class="mb-4 flex flex-wrap items-center gap-3"
 				role="search"
 			>
 				{#each Object.entries(Object.fromEntries(new URLSearchParams(filterSearch))) as [k, v] (k)}
 					<input type="hidden" name={k} value={v} />
 				{/each}
 				{#if data.sort !== 'date_desc'}<input type="hidden" name="sort" value={data.sort} />{/if}
-				<div class="min-w-56 flex-1">
-					<label class="label" for="q">Search description</label>
+				<div class="min-w-56 flex-1 sm:max-w-sm">
+					<label class="sr-only" for="q">Search description</label>
 					<input
 						id="q"
 						name="q"
@@ -93,6 +93,12 @@
 					/>
 				</div>
 				<button class="btn" type="submit">Search</button>
+				{#if result && !data.failed}
+					<p class="num ml-auto text-sm text-ink-soft" data-testid="result-total">
+						{result.total}
+						{result.total === 1 ? 'transaction' : 'transactions'}
+					</p>
+				{/if}
 			</form>
 
 			<OverrideNotice {form} />
@@ -135,7 +141,7 @@
 					sortHref={(s) => href({ ...(data.q ? { q: data.q } : {}), sort: s })}
 					search={filterSearch}
 				/>
-				<div class="mt-4">
+				<div class="mt-2">
 					<Pager
 						page={result.page}
 						pageSize={result.pageSize}
