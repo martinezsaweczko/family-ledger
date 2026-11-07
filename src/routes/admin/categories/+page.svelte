@@ -73,8 +73,8 @@
 	<title>Categories · Hearth admin</title>
 </svelte:head>
 
-<h1 class="text-3xl font-semibold">Categories</h1>
-<p class="mt-2 max-w-2xl text-ink-soft">
+<h1 class="page-title">Categories</h1>
+<p class="page-lead">
 	Archiving hides a category from pickers; its statements and rules stay as they are.
 </p>
 
@@ -88,7 +88,7 @@
 </div>
 
 <section class="mt-8" aria-labelledby="new">
-	<h2 id="new" class="text-xl font-semibold">New category</h2>
+	<h2 id="new" class="section-title">New category</h2>
 	<form method="POST" action="?/create" use:enhance class="card mt-3 space-y-4 p-5">
 		{@render fields(
 			'new',
@@ -107,10 +107,10 @@
 </section>
 
 <section class="mt-10" aria-labelledby="list">
-	<h2 id="list" class="text-xl font-semibold">Active ({active.length})</h2>
-	<ul class="mt-3 space-y-3">
+	<h2 id="list" class="section-title">Active ({active.length})</h2>
+	<ul class="card mt-3 divide-y divide-line">
 		{#each active as c (c.id)}
-			<li class="card p-4">
+			<li class="px-4 py-3">
 				<div class="flex flex-wrap items-center gap-3">
 					<CategoryIcon icon={c.icon} slug={c.slug} color={c.color} size="md" badge />
 					<p class="font-medium">{c.name}</p>
@@ -158,10 +158,10 @@
 
 {#if archived.length}
 	<section class="mt-10" aria-labelledby="archived">
-		<h2 id="archived" class="text-xl font-semibold">Archived ({archived.length})</h2>
-		<ul class="mt-3 space-y-3">
+		<h2 id="archived" class="section-title">Archived ({archived.length})</h2>
+		<ul class="card mt-3 divide-y divide-line">
 			{#each archived as c (c.id)}
-				<li class="card flex flex-wrap items-center gap-3 p-4">
+				<li class="flex flex-wrap items-center gap-3 px-4 py-3">
 					<span class="opacity-60"
 						><CategoryIcon icon={c.icon} slug={c.slug} color={c.color} size="md" badge /></span
 					>

@@ -43,8 +43,8 @@
 	<title>Review · Hearth admin</title>
 </svelte:head>
 
-<h1 class="text-3xl font-semibold">Review uncategorised</h1>
-<p class="mt-2 max-w-2xl text-ink-soft">
+<h1 class="page-title">Review uncategorised</h1>
+<p class="page-lead">
 	Give each movement a category. Tick “also create a rule” to teach Hearth the merchant, so future
 	imports categorise it automatically.
 </p>
@@ -84,7 +84,7 @@
 
 {#if data.suggestions.length}
 	<section class="mt-8" aria-labelledby="suggested">
-		<h2 id="suggested" class="text-xl font-semibold">Suggested rules</h2>
+		<h2 id="suggested" class="section-title">Suggested rules</h2>
 		<p class="mt-1 text-sm text-ink-soft">
 			Merchants that show up repeatedly in the queue. One click categorises all of them.
 		</p>
@@ -116,7 +116,7 @@
 
 <section class="mt-10" aria-labelledby="queue">
 	<div class="flex flex-wrap items-center justify-between gap-3">
-		<h2 id="queue" class="text-xl font-semibold">Queue</h2>
+		<h2 id="queue" class="section-title">Queue</h2>
 		{#if data.ai.enabled}
 			<form
 				method="POST"
@@ -225,7 +225,7 @@
 
 {#if data.aiRows.total > 0}
 	<section class="mt-10" aria-labelledby="ai-rows" data-testid="ai-section">
-		<h2 id="ai-rows" class="text-xl font-semibold">Categorised by AI ({data.aiRows.total})</h2>
+		<h2 id="ai-rows" class="section-title">Categorised by AI ({data.aiRows.total})</h2>
 		<p class="mt-1 max-w-2xl text-sm text-ink-soft">
 			These categories are suggestions. Accept one to lock it in, or change it. Rules override a
 			suggestion; your own choice always wins.

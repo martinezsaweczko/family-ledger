@@ -285,8 +285,8 @@
 	<title>Manual payments · Hearth admin</title>
 </svelte:head>
 
-<h1 class="text-3xl font-semibold">Manual payments</h1>
-<p class="mt-2 max-w-2xl text-ink-soft">
+<h1 class="page-title">Manual payments</h1>
+<p class="page-lead">
 	Add payments that are not in the bank file, such as a cleaner paid in cash, once or on a schedule.
 	They appear in every chart and list like any other movement, marked “manual”. Imported movements
 	can never be edited here.
@@ -309,14 +309,14 @@
 
 <div class="mt-8 grid gap-6 lg:grid-cols-2">
 	<section aria-labelledby="add-one">
-		<h2 id="add-one" class="text-xl font-semibold">Add a payment</h2>
+		<h2 id="add-one" class="section-title">Add a payment</h2>
 		<form method="POST" action={act('addEntry')} use:enhance class="card mt-3 space-y-4 p-5">
 			{@render entryFields('one', valuesFor('addEntry', null), errorsFor('addEntry', null))}
 			<button class="btn btn-primary">Add payment</button>
 		</form>
 	</section>
 	<section aria-labelledby="add-rec">
-		<h2 id="add-rec" class="text-xl font-semibold">Repeat a payment</h2>
+		<h2 id="add-rec" class="section-title">Repeat a payment</h2>
 		<form method="POST" action={act('addRecurring')} use:enhance class="card mt-3 space-y-4 p-5">
 			{@render recurringFields(
 				'rec',
@@ -329,7 +329,7 @@
 </div>
 
 <section class="mt-10" aria-labelledby="rec-list">
-	<h2 id="rec-list" class="text-xl font-semibold">Recurring payments ({data.recurring.length})</h2>
+	<h2 id="rec-list" class="section-title">Recurring payments ({data.recurring.length})</h2>
 	<p class="mt-1 text-sm text-ink-soft">
 		Entries are created automatically up to today. Editing changes future entries only; entries
 		already created keep their values.
@@ -440,7 +440,7 @@
 </section>
 
 <section class="mt-10" aria-labelledby="entries">
-	<h2 id="entries" class="text-xl font-semibold">Manual entries ({data.entries.total})</h2>
+	<h2 id="entries" class="section-title">Manual entries ({data.entries.total})</h2>
 	<form method="GET" class="mt-3 flex flex-wrap items-end gap-3" role="search">
 		<div class="min-w-48 flex-1 sm:max-w-xs">
 			<label class="label" for="q">Search concept</label>
