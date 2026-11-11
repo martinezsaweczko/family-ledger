@@ -31,6 +31,13 @@
 				var root = document.documentElement;
 				root.dataset.themePref = pref;
 				root.dataset.theme = theme;
+				// Seasonal theme from the local date. Keep in sync with seasonFor() in
+				// src/lib/theme/season.ts (20/12-26/12 xmas, 31/12 and 01/01 nye).
+				var now = new Date();
+				var m = now.getMonth() + 1;
+				var d = now.getDate();
+				if (m === 12 && d >= 20 && d <= 26) root.dataset.season = 'xmas';
+				else if ((m === 12 && d === 31) || (m === 1 && d === 1)) root.dataset.season = 'nye';
 				if (pref !== 'system') {
 					var colors = { light: '#f2f1ed', dark: '#151618' };
 					var metas = document.querySelectorAll('meta[name="theme-color"]');

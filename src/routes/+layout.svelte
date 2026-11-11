@@ -2,6 +2,7 @@
 	import './layout.css';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
+	import SeasonDecor from '#lib/components/SeasonDecor.svelte';
 	import ThemeToggle from '#lib/components/ThemeToggle.svelte';
 	import favicon from '#lib/assets/favicon.svg';
 	import type { LayoutProps } from './$types';
@@ -33,6 +34,8 @@
 >
 	Skip to content
 </a>
+
+<SeasonDecor />
 
 <header class="bg-card">
 	<div class="mx-auto flex max-w-6xl flex-wrap items-center gap-x-4 gap-y-0 px-5">
