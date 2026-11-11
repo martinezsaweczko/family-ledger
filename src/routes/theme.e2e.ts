@@ -92,4 +92,31 @@ test.describe.serial('theme', () => {
 			true
 		);
 	});
+
+	for (const [label, month, day, season] of [
+		['Christmas week', 11, 25, 'xmas'],
+		['New Year', 0, 1, 'nye'],
+		['a normal day', 5, 15, null]
+	] as const) {
+		test(`season on ${label} follows the local date`, async ({ page }) => {
+			await page.addInitScript(
+				([m, d]) => {
+					const RealDate = Date;
+					const fixed = new RealDate(2026, m, d, 12).getTime();
+					// @ts-expect-error minimal Date stub: only `new Date()` is pinned
+					window.Date = class extends RealDate {
+						constructor(...args: unknown[]) {
+							// @ts-expect-error forwarding arbitrary constructor args
+							super(...(args.length ? args : [fixed]));
+						}
+					};
+				},
+				[month, day]
+			);
+			await page.goto('/');
+			const html = page.locator('html');
+			if (season) await expect(html).toHaveAttribute('data-season', season);
+			else await expect(html).not.toHaveAttribute('data-season', /.+/);
+		});
+	}
 });

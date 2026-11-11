@@ -112,6 +112,117 @@
 	}
 }
 
+/*
+ * Seasonal themes (src/lib/theme/season.ts sets data-season on <html>, see app.html).
+ * Only the band, primary, attention and decoration tokens change; paper stays put so the
+ * theme-color metas keep matching. Same three-way layout as above (light, explicit dark,
+ * system dark); src/lib/theme/season-tokens.spec.ts checks the contrast pairs for each.
+ */
+html {
+	--t-season-accent: var(--t-primary-500);
+	--t-deco-a: transparent;
+	--t-deco-b: transparent;
+	--t-deco-c: transparent;
+}
+
+:root[data-season='xmas'] {
+	--t-band: #0d3b2a;
+	--t-on-band-soft: #cfe3d6;
+	--t-primary-500: #1f7a4d;
+	--t-primary-600: #176240;
+	--t-primary-700: #124f35;
+	--t-primary-900: #0a3322;
+	--t-attention-100: #fde3dc;
+	--t-attention-500: #b3261e;
+	--t-attention-600: #8c1d17;
+	--t-season-accent: #c8352b;
+	--t-deco-a: #e0463b;
+	--t-deco-b: #f2c14e;
+	--t-deco-c: #3aa66c;
+}
+
+:root[data-theme='dark'][data-season='xmas'] {
+	--t-band: #103628;
+	--t-on-band-soft: #b4cfbf;
+	--t-primary-500: #52c487;
+	--t-primary-600: #43b378;
+	--t-primary-700: #8fe0b4;
+	--t-primary-900: #d3f3e1;
+	--t-attention-100: #3b1714;
+	--t-attention-500: #ff7a6e;
+	--t-attention-600: #ffa79e;
+	--t-season-accent: #ff6b5e;
+	--t-deco-a: #e0463b;
+	--t-deco-b: #f2c14e;
+	--t-deco-c: #3aa66c;
+}
+
+:root[data-season='nye'] {
+	--t-band: #0c1030;
+	--t-on-band-soft: #c3c7ea;
+	--t-primary-500: #3a3f9a;
+	--t-primary-600: #2b3079;
+	--t-primary-700: #23276a;
+	--t-primary-900: #151846;
+	--t-attention-100: #f8ecc6;
+	--t-attention-500: #9a7312;
+	--t-attention-600: #6e5208;
+	--t-season-accent: #9a7312;
+	--t-deco-a: #e6bf55;
+	--t-deco-b: #b9bdf2;
+	--t-deco-c: #f6e7b0;
+}
+
+:root[data-theme='dark'][data-season='nye'] {
+	--t-band: #0a0d2a;
+	--t-on-band-soft: #c3c7ea;
+	--t-primary-500: #8f95f2;
+	--t-primary-600: #a1a6f5;
+	--t-primary-700: #c3c7fa;
+	--t-primary-900: #e4e6fd;
+	--t-attention-100: #3a2e0c;
+	--t-attention-500: #f0c75a;
+	--t-attention-600: #f6d98a;
+	--t-season-accent: #f0c75a;
+	--t-deco-a: #e6bf55;
+	--t-deco-b: #b9bdf2;
+	--t-deco-c: #f6e7b0;
+}
+
+@media (prefers-color-scheme: dark) {
+	:root:not([data-theme='light'])[data-season='xmas'] {
+		--t-band: #103628;
+		--t-on-band-soft: #b4cfbf;
+		--t-primary-500: #52c487;
+		--t-primary-600: #43b378;
+		--t-primary-700: #8fe0b4;
+		--t-primary-900: #d3f3e1;
+		--t-attention-100: #3b1714;
+		--t-attention-500: #ff7a6e;
+		--t-attention-600: #ffa79e;
+		--t-season-accent: #ff6b5e;
+		--t-deco-a: #e0463b;
+		--t-deco-b: #f2c14e;
+		--t-deco-c: #3aa66c;
+	}
+
+	:root:not([data-theme='light'])[data-season='nye'] {
+		--t-band: #0a0d2a;
+		--t-on-band-soft: #c3c7ea;
+		--t-primary-500: #8f95f2;
+		--t-primary-600: #a1a6f5;
+		--t-primary-700: #c3c7fa;
+		--t-primary-900: #e4e6fd;
+		--t-attention-100: #3a2e0c;
+		--t-attention-500: #f0c75a;
+		--t-attention-600: #f6d98a;
+		--t-season-accent: #f0c75a;
+		--t-deco-a: #e6bf55;
+		--t-deco-b: #b9bdf2;
+		--t-deco-c: #f6e7b0;
+	}
+}
+
 /* Tailwind tokens point at the runtime variables above, so utilities follow the theme. */
 @theme static {
 	--font-display: 'Geist Variable', system-ui, sans-serif;

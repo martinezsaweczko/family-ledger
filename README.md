@@ -184,6 +184,12 @@ simply off and nothing is ever sent anywhere.
 - **Admin**: Admin > Imports shows whether AI is enabled (model and host only), the last run, and a
   **Test connection** button that sends one synthetic prompt.
 
+## Seasonal themes
+
+Hearth dresses up automatically, based on the visitor's local date: Christmas week (20/12 to 26/12)
+and New Year (31/12 and 01/01). The colours change and a decorative band appears above the header
+(fireworks only run with motion allowed). Nothing to configure; outside those days nothing changes.
+
 ## Dedup guarantee
 
 Every row gets `dedup_hash = sha256(account | booking date | value date | concept | amount | balance after)`

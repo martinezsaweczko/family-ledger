@@ -23,6 +23,7 @@ See README.md for the product overview, importers, configuration and deploy.
 - Server-only code in `src/lib/server/`. Secrets via `$env/dynamic/private`; never commit `.env`.
 - Tests next to code: `*.spec.ts` (unit), `*.svelte.spec.ts` (component, vitest browser project; `DateInput` has one), `*.e2e.ts` (playwright).
 - Conventional Commits. Small, tested changes.
+- **Seasonal themes**: `seasonFor(date)` in `src/lib/theme/season.ts` (`xmas` 20/12-26/12, `nye` 31/12 and 01/01, local date, evaluated client-side). The inline pre-paint script in `src/app.html` sets `html[data-season]` with the same rules (keep in sync; `season.spec.ts` runs both). Tokens live in `layout.css` (`:root[data-season=...]`, light + dark + system-dark; only band/primary/attention/`--t-season-accent`/`--t-deco-*`, never `--t-paper`; `season-tokens.spec.ts` checks contrast). Decor is `SeasonDecor.svelte` (always rendered, shown by CSS, fireworks canvas gated on season/visibility/reduced motion).
 
 ## Design
 
